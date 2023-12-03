@@ -1,0 +1,30 @@
+body {
+    background-color: #f0f0f0; /* Light grey background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+  }
+
+  #cli-container {
+    background-color: #ffffff; /* White container */
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+  }
+
+  #cli-prompt {
+    color: #000000; /* Black prompt text */
+  }
+
+  #cli-input {
+    border: none;
+    outline: none;
+    font-family: 'Courier New', monospace;
+  }
+
+  #cli-input:focus {
+    outline: none;
+  }
