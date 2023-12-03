@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     switch (mainCommand) {
       case 'help':
-        printOutput('Available commands: help, about, contact, register, login, clear, shutdown, run-ib');
+        printOutput('Available commands: help, about, contact, register, login, clear, shutdown, run-ib, run-game');
         break;
 
       case 'about':
@@ -58,9 +58,12 @@ document.addEventListener('DOMContentLoaded', function () {
         loginUser(commandArgs.slice(1));
         break;
 
-      case 'home':
+      case 'run-game':
         showLoadingBar();
         simulateLoading();
+        setTimeout(function() {
+          window.location.href = 'textgame.html';
+        }, 2000);
         break;
 
       case 'clear':
