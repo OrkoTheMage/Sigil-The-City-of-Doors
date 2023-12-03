@@ -25,13 +25,16 @@ function handleInput(event) {
   }
 
 // Function to display new message
+// Function to display new message
 function printOutput(message) {
     const outputContainer = document.createElement('div');
     outputContainer.innerHTML = message;
-    cliContainer.appendChild(outputContainer);
 
-    autoClear(8);
-  }
+    // Append the new message to the content div
+    document.getElementById('cli-content').appendChild(outputContainer);
+
+    autoClear(6); // Assuming you want to clear after a certain number of messages
+}
 
 function clear() {
     Array.from(cliContainer.children).forEach((child) => {
@@ -46,25 +49,29 @@ function clear() {
   }
 
   function autoClear(limit) {
-    const children = Array.from(cliContainer.children);
+    const messagesContainer = document.getElementById('cli-content'); // Use the correct container ID
+
+    const children = Array.from(messagesContainer.children);
 
     if (children.length > limit) {
         // Keep the last 'limit' children
         const childrenToKeep = children.slice(-limit);
-    }
-    if (children.length > limit) {
+
         // Remove all children except for the prompt and input
         children.forEach((child) => {
             if (
                 child !== cliPrompt &&
                 child !== cliInput &&
-                !child.classList.contains('output')
+                !child.classList.contains('output') &&
+                !childrenToKeep.includes(child)
             ) {
-                cliContainer.removeChild(child);
+                messagesContainer.removeChild(child);
             }
         });
     }
 }
+
+
 
 
 //**************************//
@@ -73,11 +80,17 @@ function clear() {
 
 const rooms = {
     start: {
-      description: "Dark Room: You are in a dark room, with a dilapidated desk. There is a weathered note on it. There is a hatch door to the south and light coming for the north.",
-      actions: {
-        north: "hallway",
-        take: "note",
-        south: "locked door"
+        generateDescription: function (inventory) {
+            if (inventory.lantern && objects.lantern.lit) {
+                return "Cellar Entrance: You are in the entrance to a cellar with a dilapidated desk. To the south is a ";
+            } else {
+                return "Dark Room: You are in a dark room with a dilapidated desk. There is a weathered note on it. Light from the north is dimly illuminating the room.";
+            }
+        },
+        actions: {
+            north: "hallway",
+            take: "note",
+            south: "locked door",
         },
     },
     lockedDoor: {
@@ -98,7 +111,8 @@ const rooms = {
         description: "Store Room: You are in a cellar store room. There are a number of run-down barrels within the room and a door leading east.",
         actions: {
           east: "hallway",
-          take: "barrels"
+          inspect: "barrels",
+          take: "lantern",
         },
       },
     kitchen: {
@@ -125,22 +139,52 @@ const objects = {
         },
     },
     key: {
-        description: "A shiny key. It might be useful.",
+        description: "A small brass key.",
         take: () => {
             takeItem('key');
         },
     },
     food: {
+        description: "Rotten food, would anybody even eat this?",
         take: () => {
             takeItem('food');
         },
     },
     barrels: {
+        description: "You found an lantern, it's old but it might be useful. Take it?",
+        take: () => {
+        },
+    },
+    lantern: {
+        description: "An old lantern. Still has some fuel left in it.",
         take: () => {
             takeItem('lantern');
         },
+        lit: false,
+        light: () => {
+            if (inventory.lantern && !objects.lantern.lit) {
+                objects.lantern.lit = true;
+                printOutput("You light the lantern.");
+            } else if (!inventory.lantern) {
+                printOutput("You don't have a lantern");
+            } else {
+                printOutput("The lantern is already lit.");
+            }
+        },
+        turnOff: () => {
+            if (inventory.lantern && objects.lantern.lit) {
+                objects.lantern.lit = false;
+                printOutput("You turn off the lantern.");
+            } else if (!inventory.lantern) {
+                printOutput("You don't have a lantern");
+            } else {
+                printOutput("The lantern is already off.");
+            }
+        },
     },
-    // Add more objects as needed
+    
+
+    //add more items here
 };
 
 function takeItem(item) {
@@ -251,13 +295,28 @@ function handleObjectInteraction(action, object) {
                 break;
            
             case 'inspect':
-            case 'open':
             case 'read':
                 printOutput(objects[object].description);
                 break;
-
+                
             case 'drop':
                 dropItem(commandArgs[1]);
+                break;
+
+            case 'light':
+                if (objects[object] && objects[object].light) {
+                objects[object].light();
+                    } else {
+                        printOutput(`You cannot light the ${object}.`);
+                            }
+                break;
+
+            case 'turn':
+                if (commandArgs[1] === 'off' && objects[object] && objects[object].turnOff) {
+                objects[object].turnOff();
+                    } else {
+                 printOutput(`You cannot turn off the ${object}.`);
+                            }
                 break;
 
             default:
@@ -283,6 +342,13 @@ function processCommand(command) {
         case 'clear':
             clear();
             break;
+        
+        case 'help':
+            printOutput('<strong>If you need to go somewhere try commands like</strong>');
+            printOutput('north, south, east and west');
+            printOutput('<strong>If you\'re lost try commands like</strong');
+            printOutput('look, read, inspect and take - followed by an object')
+            break;
 
         case 'north':
         case 'east':
@@ -306,12 +372,17 @@ function processCommand(command) {
         case 'open':
         case 'read':
         case 'drop':
+        case 'light':
             handleObjectInteraction(mainCommand, commandArgs[1]);
             break;
 
         case 'inventory':
         case 'bag':
             displayInventory();
+            break;
+        
+        case 'turn':
+            handleObjectInteraction(mainCommand, commandArgs[2]);
             break;
 
         default:

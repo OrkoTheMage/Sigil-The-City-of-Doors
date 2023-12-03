@@ -10,16 +10,31 @@ body {
 }
 
 #cli-container {
-  position: relative; /* Set position to relative */
+  position: flex;
+  flex-direction: column;
   border: 1px solid #ffffff;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   padding: 20px;
   z-index: 50;
+  overflow-y: auto;
+}
+
+#cli-content {
+  flex: 1; /* Takes up remaining vertical space */
+  overflow-y: auto; /* Enable vertical scrolling if needed */
+  margin-bottom: 10px; /* Adjust the margin as needed */
+  overflow-y: auto;
+}
+
+#cli-content > div {
+  margin-bottom: 10px; /* Adjust the margin between messages */
 }
 
 #cli-prompt {
   color: #ffffff;
+  margin-top: auto;
+  overflow-y: auto;
 }
 
 #cli-input {
@@ -28,6 +43,8 @@ body {
   color: #ffffff;
   background-color: #000000;
   font-family: 'Courier New', monospace;
+  margin-top: auto;
+  overflow-y: auto;
 }
 
 #cli-input:focus {

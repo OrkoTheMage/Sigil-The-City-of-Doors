@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     switch (mainCommand) {
       case 'help':
-        printOutput('Available commands: help, about, contact, register, login, clear, shutdown, run-ib, run-game');
+        printOutput('Available commands: help, about, contact, register, login, clear, shutdown, run-ib, run-sigil');
         break;
 
       case 'about':
@@ -58,11 +58,11 @@ document.addEventListener('DOMContentLoaded', function () {
         loginUser(commandArgs.slice(1));
         break;
 
-      case 'run-game':
+      case 'run-sigil':
         showLoadingBar();
         simulateLoading();
         setTimeout(function() {
-          window.location.href = 'textgame.html';
+          window.location.href = 'sigil.html';
         }, 2000);
         break;
 
