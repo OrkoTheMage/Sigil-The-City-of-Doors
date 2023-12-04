@@ -36,6 +36,7 @@ function printOutput(message) {
     autoClear(6); // Assuming you want to clear after a certain number of messages
 }
 
+// Function to manually clear the CLI
 function clear() {
     const children = Array.from(cliContent.children);
     children.forEach((child) => {
@@ -50,7 +51,8 @@ function clear() {
     });
   }
 
-  function autoClear(limit) {
+// Function to automatically clear the CLI
+function autoClear(limit) {
     const children = Array.from(cliContent.children);
 
     if (children.length > limit) {
@@ -78,37 +80,52 @@ function clear() {
 
 const rooms = {
     start: {
-        description: "Dark Room: You are in a dark room, with a dilapidated desk. There is a weathered note on it. Light partially peaks in from a north hallway.",
+        description: () => {
+            if (inventory.lantern) {
+                return "Study: With your lantern illuminating the surroundings you can see this, once dark room, was working as someones study. Many books are strew about, in piles and scatter. There is a cellar hatch to the south.";
+            } else {
+                return "Dark Room: You are in a dark room, with a dilapidated desk. There is a weathered note on it. Light partially peaks in from a north hallway.";
+            }
+        },
         actions: {
             north: "hallway",
             south: "alleyway",
             take: "note",
-            inspect: "desk",
-        },
-    },
-    study: {
-        description: "Study: With your lantern illuminating the surroundings you can see this, once dark room, was working as someones study. Many books are strew about, in piles and scatter. There is a cellar hatch to the south.",
-        actions: {
-            north: "hallway",
-            south: "alleyway",
             inspect: "desk",
             inspect: "books",
             inspect: "book",
             take: "sword",
         },
     },
+
     alleyway: {
-        description: "Alleyway: You are in an alleyway, finally, sunlight! It appears you're in a large city, the alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing. Behind you, north, is the cellar. ",
+        description: "Alleyway: You are in an alleyway, finally, sunlight! It appears you're in a large city, the alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar. ",
         actions: {
             north: "study",
             south: "alleyend"
         },
     },
     alleyend: {
-        description: "Alley End: add descrip ", //add
+        description: () => {
+            if (foodGiven) {
+                return "Alley End: The half-orc, now satisfied with the food you gave him, watches you pass without hostility. To the south, you see a busy thoroughfare.";
+            } else {
+                return "Alley End: Now visible, the figure is a half-orc. He's either unaware or too deranged to notice your presence. Though charging past him might change that. To the south, you see a busy thoroughfare.";
+            }
+        },
         actions: {
-            north: "alleyway"
-
+            north: "alleyway",
+            south: "marketplace",
+            give: "giveFood",
+            sneak: "sneak"
+        },
+        sneakAllowed: true,
+        sneakAttempted: false  // Add a flag to track sneak attempts
+    },
+    marketplace: {
+        description: "Marketplace: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture.",
+        actions: {
+  
         },
     },
     hallway: {
@@ -140,7 +157,7 @@ const rooms = {
 
 
 //**************************//
-//      ROOM CHANGES       //
+//      ROOM MODIFIERS      //
 //************************//
 
 // Start room locked door
@@ -149,39 +166,25 @@ rooms.start.actions.south = () => {
         printOutput("The hatch door creaks open. You unlock it with the key and enter an alleyway.");
         return "alleyway";
     } else {
-        printOutput("The hatch is locked.");
+        printOutput("You find a hatch door, its locked.");
         return null;
     }
 };
 
-// If the start room has been changed to the study, and is locked
-rooms.study.actions.south = () => {
-    if (inventory.key) {
-        printOutput("The hatch door creaks open. You unlock it with the key and enter an alleyway.");
-        return "alleyway";
-    } else {
-        printOutput("The hatch is locked.");
-        return null; // Returning null indicates that the player didn't move to a new room
+// Able to get passed the Alleyend (food)
+rooms.alleyend.actions.south = () => {
+    if (foodGiven) {
+        return "marketplace";
+    } 
+    if (sneakSuccessful) {
+        return "marketplace";
+    }
+    else {
+        printOutput("You'll alert the half-orc. Find a way around or deal with him");
+        return null;
     }
 };
 
-// Lights up the start to the Study
-rooms.hallway.actions.south = () => {
-    if (inventory.lantern) {
-        return "study";
-    } else {
-        return "start";
-    }
-};
-
-// Alleyway to the Study (lit) or Start (unlit)
-rooms.alleyway.actions.north = () => {
-    if (inventory.lantern) {
-        return "study";
-    } else {
-        return "start";
-    }
-};
 
 //**************************//
 //         OBJECTS         //
@@ -223,6 +226,9 @@ const objects = {
         take: () => {
             takeItem('food');
         },
+        give: () => {
+            giveFood();
+        },
     },
     barrels: {
         description: "You found an lantern, it's old but it might be useful. Take it?",
@@ -241,27 +247,6 @@ const objects = {
         take: () => { 
             takeItem('lantern');
         },
-        lit: false,
-        light: () => {
-            if (inventory.lantern && !objects.lantern.lit) {
-                objects.lantern.lit = true;
-                printOutput("You light the lantern.");
-            } else if (!inventory.lantern) {
-                printOutput("You don't have a lantern");
-            } else {
-                printOutput("The lantern is already lit.");
-            }
-        },
-        turnOff: () => {
-            if (inventory.lantern && objects.lantern.lit) {
-                objects.lantern.lit = false;
-                printOutput("You turn off the lantern.");
-            } else if (!inventory.lantern) {
-                printOutput("You don't have a lantern");
-            } else {
-                printOutput("The lantern is already off.");
-            }
-        },
     },
     sword: {
         description: "a quality short sword",
@@ -269,11 +254,14 @@ const objects = {
             takeItem('sword');
         }
     },
-    
-
-    //add more items here
 };
 
+
+//**************************//
+//     OBJECT FUNCTIONS    //
+//************************//
+
+// Function to add item to inventory
 function takeItem(item) {
     const inventorySize = Object.keys(inventory).length;
     const maxInventorySize = 5;
@@ -286,7 +274,20 @@ function takeItem(item) {
     }
 }
 
+// Function to give food, removes from inventory
+function giveFood() {
+    if (inventory.food && !foodGiven) {
+        printOutput("You give the rotten food to the half-orc. He takes it and nods, allowing you to pass peacefully.");
 
+        delete inventory.food;
+        foodGiven = true;
+
+    } else if (foodGiven) {
+        printOutput("You already gave the food. The half-orc seems content.");
+    } else {
+        printOutput("You don't have any food to give.");
+    }
+}
 //**************************//
 //      GAME LOGIC: 1      //
 //       GAME STATE       //
@@ -297,7 +298,10 @@ let currentRoom = rooms.start;
 let moves = 0;
 let score = 0;
 const inventory = {};
+let sneakSuccessful = false;
+let foodGiven = false;
 
+// Function for the move and score counters
 function updateCounters() {
     const movesInfoElement = document.getElementById('moves-info');
     movesInfoElement.innerHTML = `<p>Moves: ${moves}</p>`;
@@ -306,22 +310,40 @@ function updateCounters() {
     scoreInfoElement.innerHTML = `<p>Score: ${score}</p>`;
   }
 
-  // Function to display current room description
-  function displayRoom() {
-    const descriptionParts = currentRoom.description.split(':'); // Split the description into parts
-    const boldText = `<strong>${descriptionParts[0]}</strong>`; // Bold the first part
-    const unboldedText = descriptionParts.slice(1).join('.'); // Join the remaining parts without bolding
-    
-// Update the room info element
+// Function to display current room description
+function displayRoom() {
+    //checks to see if descript is a function or regular.
+    const description = typeof currentRoom.description === 'function'
+        ? currentRoom.description() 
+        : currentRoom.description;
+
+    const descriptionParts = description.split(':');
+    const boldText = `<strong>${descriptionParts[0]}</strong>`;
+    const unboldedText = descriptionParts.slice(1).join('.');
+
+    // Update the room info element
     const roomInfoElement = document.getElementById('room-info');
     roomInfoElement.innerHTML = `<p>${boldText}</p>`;
+    
+// Check if the player has entered the marketplace
+if (currentRoom === rooms.marketplace) {
+    // Print an initial message with a delay
+    setTimeout(() => {
+        printOutput("<strong>...and you are totally lost</strong>");
+
+        // Set another timeout for the second message
+        setTimeout(() => {
+            printOutput("<strong>Chapter 1: END</strong>");
+        }, 2000); // 2000 milliseconds (2 seconds) delay for the second message, adjust as needed
+    }, 2000); // 2000 milliseconds (2 seconds) delay for the first message, adjust as needed
+}
 
     printOutput(`${boldText}`);
     printOutput(`${unboldedText}`);
-  }
+}
 
 
-
+// Function to keep track of inventory
 function displayInventory() {
     const inventoryItems = Object.keys(inventory);
     if (inventoryItems.length > 0) {
@@ -340,11 +362,12 @@ function displayInventory() {
 //        HANDLERS         //
 //************************//
 
- // Function to handle player actions
+ // Function to handle player move actions
  function handleMovement(action) {
     if (currentRoom.actions[action]) {
-        moves++; // Increment moves when the player moves
-        updateCounters(); // Update the counters
+       
+        moves++;
+        updateCounters();
 
         if (action === 'south' && currentRoom.actions.south instanceof Function) {
             // If the action is 'south' and it's a function, call the function
@@ -369,16 +392,16 @@ function displayInventory() {
             displayRoom();
         }
     } else {
-        printOutput(`You cannot go ${action}. Try again.`);
+        printOutput(`There is nothing to your ${action}. Try again.`);
     }
 }
 
-// Function to handle object interactions
+// Function to handle player object interactions
 function handleObjectInteraction(action, object) {
     if (objects[object]) {
         
-        moves++; // Increment moves for each action
-        updateCounters(); // Update the counters
+        moves++;
+        updateCounters();
     
         switch (action) {
             case 'take':
@@ -411,33 +434,143 @@ function handleObjectInteraction(action, object) {
     } else {
         printOutput("There is no " + object + " to " + action + ".");
     }
-
-    // function handleActions(action, object) {
-    //     switch (action.toLowerCase()) {
-    //         case 'destroy':
-    //         case 'break':
-    //         case 'kill':
-    //             // Your logic for handling destruction, breaking, killing, etc.
-    //             break;
-    
-    //         case 'hands':
-    //             // Your logic for handling actions with hands.
-    //             break;
-    
-    //         case 'sword':
-    //             // Your logic for handling actions with a sword.
-    //             break;
-    
-    //         default:
-    //             printOutput(`I don't know that action for ${object}. Try again.`);
-    //     }
-    // }
 }
 
+function handleSneak() {
+    if (currentRoom.sneakAllowed && !currentRoom.sneakAttempted) {
+        printOutput("You attempt to sneak quietly.");
+
+        // Determine the outcome (50/50 chance)
+        sneakSuccessful = Math.random() < 0.5;
+
+        if (sneakSuccessful) {
+            printOutput("Your sneaking is successful. You move quietly.");
+            // Add any additional logic or effects for a successful sneak
+        } else {
+            printOutput("Oops! Your attempt to sneak fails. You make some noise.");
+            // Add any additional logic or effects for a failed sneak
+        }
+
+        // Set the sneakAttempted flag to true
+        currentRoom.sneakAttempted = true;
+
+    } else if (!currentRoom.sneakAllowed) {
+        printOutput("There is no need to sneak here");
+    } else {
+        printOutput("You already attempted to sneak in this room.");
+    }
+}
+
+
 //**************************//
-//      GAME LOGIC: 3      //
+//       GAME LOGIC: 3      //
+//          COMBAT         //
+//************************//
+
+// Globals for combat
+let playerHealth = 40;
+let foeHealth = 20;
+let inCombat = false;
+
+// Function to start combat
+function startCombat() {
+    printOutput("You are now in combat!");
+    inCombat = true;
+}
+
+// Function to end combat
+function endCombat() {
+    printOutput("Combat is over.");
+    inCombat = false;
+    // Reset health after combat
+    playerHealth = 40;
+}
+
+// Function to update health based on combat outcome
+function updateHealth(outcome) {
+    const playerDamage = outcome.result === 'lose' ? 5 : 0; // Adjust as needed
+    const foeDamage = outcome.result === 'win' ? 5 : 0; // Adjust as needed
+
+    playerHealth -= playerDamage;
+    foeHealth -= foeDamage;
+
+    // Ensure health doesn't go below 0
+    playerHealth = Math.max(playerHealth, 0);
+    foeHealth = Math.max(foeHealth, 0);
+}
+
+// Function to determine attack type
+function getAttackType(action) {
+    const attackTypes = {
+        heavy: 'heavy',
+        quick: 'quick',
+        counter: 'counter',
+        dodge: 'dodge',
+    };
+    return attackTypes[action] || 'unknown';
+}
+
+// Function to determine combat outcome
+function determineCombatOutcome(playerAction, enemyAction) {
+    const playerAttackType = getAttackType(playerAction);
+    const enemyAttackType = getAttackType(enemyAction);
+
+    if (playerAttackType === enemyAttackType) {
+        return { result: 'draw', message: 'It\'s a draw!', endCombat: false };
+    }
+
+    if (
+        (playerAttackType === 'quick' && enemyAttackType === 'heavy') ||
+        (playerAttackType === 'heavy' && enemyAttackType === 'counter') ||
+        (playerAttackType === 'counter' && enemyAttackType === 'quick')
+    ) {
+        return { result: 'win', message: `You defeated the enemy with ${playerAction}!`, endCombat: true };
+    } else if (playerAttackType === 'dodge') {
+        return { result: 'draw', message: 'You dodged the enemy\'s attack!', endCombat: false };
+    } else {
+        return { result: 'lose', message: `You were defeated by the enemy's ${enemyAction}.`, endCombat: true };
+    }
+}
+
+// Function to handle combat actions
+function handleCombatAction(action) {
+    if (!inCombat && currentRoom === rooms.alleyend && action === 'attack') {
+        startCombat();
+        printOutput("The half-orc notices you, and the combat begins!");
+    } else if (inCombat) {
+        const enemyAction = getRandomEnemyAction();
+
+        // Determine the outcome
+        const outcome = determineCombatOutcome(action, enemyAction);
+
+        // Update health based on the outcome
+        updateHealth(outcome);
+
+        // Display the outcome
+        printOutput(`You ${outcome.result}! ${outcome.message}`);
+
+        // Check if combat should end (e.g., player defeated the enemy)
+        if (outcome.endCombat) {
+            endCombat();
+        }
+    } else {
+        printOutput("You are not in combat.");
+    }
+}
+
+// Function to get a random enemy action
+function getRandomEnemyAction() {
+    const actions = ['quick', 'heavy', 'counter', 'dodge'];
+    const randomIndex = Math.floor(Math.random() * actions.length);
+    return actions[randomIndex];
+}
+
+
+//**************************//
+//      GAME LOGIC: 4      //
 //      CLI COMMANDS      //
 //************************//
+
 
 // Function to process user input
 function processCommand(command) {
@@ -448,15 +581,6 @@ function processCommand(command) {
     switch (mainCommand) {
         case 'clear':
             clear();
-            break;
-        
-        case 'help':
-            printOutput ('<strong>If you need to go somewhere try commands like</strong>');
-            printOutput ('north, south, east and west');
-            printOutput('<strong>If you\'re lost try commands like</strong');
-            printOutput('look, read, inspect, take, and others - followed by an object')
-            printOutput('or verbs like - kill, destroy, break - followed by an object  ')
-            printOutput('<strong>You can look at your inventory with the "inventory", "bag", "inv" or simpily "i" commands</strong')
             break;
 
         case 'go':
@@ -518,20 +642,46 @@ function processCommand(command) {
         case 'pick up':
             handleObjectInteraction(mainCommand, commandArgs[2]);
             break;
-
-        // case 'destroy':
-        // case 'kill':
-        // case 'break':
-        // case 'hands':
-        // case 'sword':
-        //     handleActions(mainCommand, commandArgs[1]);
-        //     break;
+            
+        case 'give':
+        case 'hand':
+        case 'throw':
+            const objectToGive = commandArgs[1];
+            if (currentRoom.actions.give && objects[objectToGive] && objects[objectToGive].give) {
+            objects[objectToGive].give();
+            } else {
+            printOutput("You have nothing to give/throw or can't give/throw this item");
+                }
+            break;
         
+        case 'sneak':
+            handleSneak();
+            break;
+
         case 'wait':
         case 'sleep':
         case 'rest':
             printOutput("Time passes but you are no closer to getting home.")
             break;
+
+        case 'think':
+            printOutput("You need to find a way out of this cellar and figure out just where the hell you ended up at. What did that note say?")
+            break;
+
+        case 'equip':
+            printOutput("No need to equip anything you can only hold 5 items in your bag.")
+            break;
+            
+        case 'help':
+            printOutput ('<strong>If you need to go somewhere try commands like: </strong> north, south, east and west');
+            printOutput('<strong>If you\'re lost try commands like: look, read, inspect, take - followed by an object</strong');
+            printOutput('verbs like give, sneak and attack can be useful');
+            printOutput('<strong>You can look at your inventory with the "inventory", "bag", "inv" or simpily "i" commands</strong');
+            printOutput('You may also want to see "help-combat"')
+                break;
+        
+        case 'help-combat':
+            printOutput('')
 
         default:
             printOutput("I don\'t know that command. Try again.");
