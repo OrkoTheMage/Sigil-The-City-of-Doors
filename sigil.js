@@ -98,7 +98,7 @@ const rooms = {
         },
     },
     alleyway: {
-        description: "Alleyway: You are in an alleyway, finally, sunlight! It appears you're in a large city, the alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing and north back into the cellar. ",
+        description: "Alleyway: You are in an alleyway, finally, sunlight! It appears you're in a large city, the alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing. Behind you, north, is the cellar. ",
         actions: {
             north: "study",
             south: "alleyend"
@@ -107,6 +107,7 @@ const rooms = {
     alleyend: {
         description: "Alley End: add descrip ", //add
         actions: {
+            north: "alleyway"
 
         },
     },
@@ -237,7 +238,7 @@ const objects = {
     },
     lantern: {
         description: "An old lantern. Still has some fuel left in it.",
-        take: () => {
+        take: () => { 
             takeItem('lantern');
         },
         lit: false,
@@ -432,18 +433,26 @@ function handleObjectInteraction(action, object) {
             default:
                 printOutput("I don\'t know that command for " + object + ". Try again.");
         }
+    } else if (action && !object) {
+        printOutput(action + " what? There was no object in that command.");
     } else {
         printOutput("There is no " + object + " to " + action + ".");
     }
 
-    function handleActions(action, objects) {
-        switch (action.toLowerCase()) {
-            case 'destroy':
-            case 'break':
-            case 'kill':
-                printOutput("What do you want to ${action} ${object} with?" )
-        }
-    }
+    // function handleActions(action, object) {
+    //     switch (action.toLowerCase()) {
+    //         case 'destroy':
+    //         case 'break':
+    //         case 'kill':
+    //             printOutput("What do you want to ${action} ${object} with?" )
+            
+    //         case 'hands':
+    //             printOutput("Best not.")
+
+    //         case 'sword':
+    //             printOutput("You swing your sword.")
+    //     }
+    // }
 }
 
 //**************************//
@@ -536,6 +545,13 @@ function processCommand(command) {
             handleObjectInteraction(mainCommand, commandArgs[2]);
             break;
 
+        // case 'destroy':
+        // case 'kill':
+        // case 'break':
+        // case 'hands':
+        // case 'sword':
+        //     handleActions()
+        
         case 'wait':
         case 'sleep':
         case 'rest':
@@ -551,6 +567,7 @@ function processCommand(command) {
 //**************************//
 //     INITIALIZE GAME     //
 //************************//
+    document.getElementById('ascii-art').style.display= 'none'
     displayRoom();
     updateCounters();
 });

@@ -58,12 +58,16 @@ body {
   right: 0;
   margin-bottom: 25%;
   font-size: 3vw;
-  opacity: 0; /* Start with opacity set to 0 */
-  transition: opacity 0.5s ease-in-out; /* Add a transition for opacity */
+  animation: fadeOut 8s forwards; 
 }
 
-#ascii-art.visible {
-  opacity: 1; /* Set opacity to 1 for visible state */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 #room-info {
