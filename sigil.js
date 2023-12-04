@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const cliContainer = document.getElementById('cli-container');
     const cliPrompt = document.getElementById('cli-prompt');
     const cliInput = document.getElementById('cli-input');
+    const cliContent = document.getElementById('cli-content');
 
 // Listener
 cliInput.addEventListener('keydown', handleInput);
@@ -25,7 +26,6 @@ function handleInput(event) {
   }
 
 // Function to display new message
-// Function to display new message
 function printOutput(message) {
     const outputContainer = document.createElement('div');
     outputContainer.innerHTML = message;
@@ -37,21 +37,21 @@ function printOutput(message) {
 }
 
 function clear() {
-    Array.from(cliContainer.children).forEach((child) => {
-      if (
-        child !== cliPrompt &&
-        child !== cliInput &&
-        !child.classList.contains('output') // Assuming output elements have a class 'output'
-      ) {
-        cliContainer.removeChild(child);
-      }
-    })
+    const children = Array.from(cliContent.children);
+    children.forEach((child) => {
+        if (
+            child !== cliPrompt &&
+            child !== cliInput &&
+            !child.classList.contains('output') &&
+            !childrenToKeep.includes(child)
+        ) {
+            cliContent.removeChild(child);
+        }
+    });
   }
 
   function autoClear(limit) {
-    const messagesContainer = document.getElementById('cli-content'); // Use the correct container ID
-
-    const children = Array.from(messagesContainer.children);
+    const children = Array.from(cliContent.children);
 
     if (children.length > limit) {
         // Keep the last 'limit' children
@@ -65,13 +65,11 @@ function clear() {
                 !child.classList.contains('output') &&
                 !childrenToKeep.includes(child)
             ) {
-                messagesContainer.removeChild(child);
+                cliContent.removeChild(child);
             }
         });
     }
 }
-
-
 
 
 //**************************//
@@ -80,27 +78,40 @@ function clear() {
 
 const rooms = {
     start: {
-        generateDescription: function (inventory) {
-            if (inventory.lantern && objects.lantern.lit) {
-                return "Cellar Entrance: You are in the entrance to a cellar with a dilapidated desk. To the south is a ";
-            } else {
-                return "Dark Room: You are in a dark room with a dilapidated desk. There is a weathered note on it. Light from the north is dimly illuminating the room.";
-            }
-        },
+        description: "Dark Room: You are in a dark room, with a dilapidated desk. There is a weathered note on it. Light partially peaks in from a north hallway.",
         actions: {
             north: "hallway",
+            south: "alleyway",
             take: "note",
-            south: "locked door",
+            inspect: "desk",
         },
     },
-    lockedDoor: {
-        description: "The hatch is locked.",
+    study: {
+        description: "Study: With your lantern illuminating the surroundings you can see this, once dark room, was working as someones study. Many books are strew about, in piles and scatter. There is a cellar hatch to the south.",
         actions: {
             north: "hallway",
+            south: "alleyway",
+            inspect: "desk",
+            inspect: "books",
+            inspect: "book",
+            take: "sword",
+        },
+    },
+    alleyway: {
+        description: "Alleyway: You are in an alleyway, finally, sunlight! It appears you're in a large city, the alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing and north back into the cellar. ",
+        actions: {
+            north: "study",
+            south: "alleyend"
+        },
+    },
+    alleyend: {
+        description: "Alley End: add descrip ", //add
+        actions: {
+
         },
     },
     hallway: {
-      description: "Hallway: You are in a dimly lit hallway. There are doorsways to the east and west and a dark room to the south.",
+      description: "Hallway: You are in a dimly lit hallway. There are doorways to the east and west and a dark room to the south.",
       actions: {
         east: "kitchen",
         west: "storeroom",
@@ -112,6 +123,7 @@ const rooms = {
         actions: {
           east: "hallway",
           inspect: "barrels",
+          inspect: "barrel",
           take: "lantern",
         },
       },
@@ -127,6 +139,50 @@ const rooms = {
 
 
 //**************************//
+//      ROOM CHANGES       //
+//************************//
+
+// Start room locked door
+rooms.start.actions.south = () => {
+    if (inventory.key) {
+        printOutput("The hatch door creaks open. You unlock it with the key and enter an alleyway.");
+        return "alleyway";
+    } else {
+        printOutput("The hatch is locked.");
+        return null;
+    }
+};
+
+// If the start room has been changed to the study, and is locked
+rooms.study.actions.south = () => {
+    if (inventory.key) {
+        printOutput("The hatch door creaks open. You unlock it with the key and enter an alleyway.");
+        return "alleyway";
+    } else {
+        printOutput("The hatch is locked.");
+        return null; // Returning null indicates that the player didn't move to a new room
+    }
+};
+
+// Lights up the start to the Study
+rooms.hallway.actions.south = () => {
+    if (inventory.lantern) {
+        return "study";
+    } else {
+        return "start";
+    }
+};
+
+// Alleyway to the Study (lit) or Start (unlit)
+rooms.alleyway.actions.north = () => {
+    if (inventory.lantern) {
+        return "study";
+    } else {
+        return "start";
+    }
+};
+
+//**************************//
 //         OBJECTS         //
 //************************//
 
@@ -138,6 +194,23 @@ const objects = {
             takeItem('note');
         },
     },
+    desk: {
+        description: 'There is nothing useful in the desk.',
+        take: () => {
+        },
+    },
+    books: {
+        description: 'You rummage through the books. Mostly garbage but your latern light catches a glint of something metallic, a sword. Take it?',
+        take: () => {
+            takeItem('sword');
+        },
+    },
+    book: {
+        description: 'You rummage through the books. Mostly garbage but your latern light catches a glint of something metallic, a sword. Take it?',
+        take: () => {
+            takeItem('sword');
+        },
+    },
     key: {
         description: "A small brass key.",
         take: () => {
@@ -145,7 +218,7 @@ const objects = {
         },
     },
     food: {
-        description: "Rotten food, would anybody even eat this?",
+        description: "Rotten food, who would eat this?",
         take: () => {
             takeItem('food');
         },
@@ -154,6 +227,13 @@ const objects = {
         description: "You found an lantern, it's old but it might be useful. Take it?",
         take: () => {
         },
+    
+    },
+    barrel: {
+        description: "You found an lantern, it's old but it might be useful. Take it?",
+        take: () => {
+        },
+    
     },
     lantern: {
         description: "An old lantern. Still has some fuel left in it.",
@@ -181,6 +261,12 @@ const objects = {
                 printOutput("The lantern is already off.");
             }
         },
+    },
+    sword: {
+        description: "a quality short sword",
+        take: () => {
+            takeItem('sword');
+        }
     },
     
 
@@ -224,7 +310,7 @@ function updateCounters() {
     const descriptionParts = currentRoom.description.split(':'); // Split the description into parts
     const boldText = `<strong>${descriptionParts[0]}</strong>`; // Bold the first part
     const unboldedText = descriptionParts.slice(1).join('.'); // Join the remaining parts without bolding
-
+    
 // Update the room info element
     const roomInfoElement = document.getElementById('room-info');
     roomInfoElement.innerHTML = `<p>${boldText}</p>`;
@@ -266,18 +352,36 @@ function dropItem(item) {
     if (currentRoom.actions[action]) {
         moves++; // Increment moves when the player moves
         updateCounters(); // Update the counters
-        
-        const nextRoom = rooms[currentRoom.actions[action]];
-      currentRoom = nextRoom;
-      displayRoom();
+
+        if (action === 'south' && currentRoom.actions.south instanceof Function) {
+            // If the action is 'south' and it's a function, call the function
+            const nextRoom = currentRoom.actions.south();
+            if (nextRoom) {
+                currentRoom = rooms[nextRoom];
+                displayRoom();
+            }
+        } 
+        else if (action === 'north' && currentRoom.actions.north instanceof Function) {
+            // If the action is 'north' and it's a function, call the function
+            const nextRoom = currentRoom.actions.north();
+            if (nextRoom) {
+                currentRoom = rooms[nextRoom];
+                displayRoom();
+            }
+        }
+        else {
+            // If it's a regular action, get the next room and update
+            const nextRoom = rooms[currentRoom.actions[action]];
+            currentRoom = nextRoom;
+            displayRoom();
+        }
     } else {
-      printOutput(`You cannot go ${action}. Try again.`);
+        printOutput(`You cannot go ${action}. Try again.`);
     }
-  }
+}
 
 // Function to handle object interactions
 function handleObjectInteraction(action, object) {
-    const fullCommand = action + ' ' + object;
     if (objects[object]) {
         
         moves++; // Increment moves for each action
@@ -287,6 +391,8 @@ function handleObjectInteraction(action, object) {
             case 'take':
             case 'grab':
             case 'pickup':
+            case 'pick':
+            case 'pick-up':
                 if (objects[object].take) {
                     objects[object].take();
                 } else {
@@ -296,6 +402,9 @@ function handleObjectInteraction(action, object) {
            
             case 'inspect':
             case 'read':
+            case 'look-at':
+            case 'open':
+            case 'loot':
                 printOutput(objects[object].description);
                 break;
                 
@@ -304,6 +413,7 @@ function handleObjectInteraction(action, object) {
                 break;
 
             case 'light':
+            case 'turn-on':
                 if (objects[object] && objects[object].light) {
                 objects[object].light();
                     } else {
@@ -312,18 +422,27 @@ function handleObjectInteraction(action, object) {
                 break;
 
             case 'turn':
-                if (commandArgs[1] === 'off' && objects[object] && objects[object].turnOff) {
-                objects[object].turnOff();
-                    } else {
-                 printOutput(`You cannot turn off the ${object}.`);
-                            }
+                if (commandArgs[1] === 'off' && commandArgs[2] && objects[commandArgs[2]] && objects[commandArgs[2]].turnOff) {
+                        objects[commandArgs[2]].turnOff();
+                } else {
+                        printOutput(`You cannot turn off ${commandArgs[2]}.`);
+                        }
                 break;
 
             default:
-                printOutput("Invalid command for " + object + ". Try again.");
+                printOutput("I don\'t know that command for " + object + ". Try again.");
         }
     } else {
         printOutput("There is no " + object + " to " + action + ".");
+    }
+
+    function handleActions(action, objects) {
+        switch (action.toLowerCase()) {
+            case 'destroy':
+            case 'break':
+            case 'kill':
+                printOutput("What do you want to ${action} ${object} with?" )
+        }
     }
 }
 
@@ -337,24 +456,51 @@ function processCommand(command) {
     printOutput(`>${command}`);
     const commandArgs = command.split(' ');
     const mainCommand = commandArgs[0].toLowerCase();
-
+    
+    if (mainCommand === 'go' || mainCommand === 'move') {
+        const direction = commandArgs[1] ? commandArgs[1].toLowerCase() : ''; // Get the direction if provided
+        handleMovement(direction);
+    }
     switch (mainCommand) {
         case 'clear':
             clear();
             break;
         
         case 'help':
-            printOutput('<strong>If you need to go somewhere try commands like</strong>');
-            printOutput('north, south, east and west');
+            printOutput ('<strong>If you need to go somewhere try commands like</strong>');
+            printOutput ('north, south, east and west');
             printOutput('<strong>If you\'re lost try commands like</strong');
-            printOutput('look, read, inspect and take - followed by an object')
+            printOutput('look, read, inspect, take, and others - followed by an object')
+            printOutput('or verbs like - kill, destroy, break - followed by an object  ')
+            printOutput('<strong>You can look at your inventory with the "inventory", "bag", "inv" or simpily "i" commands</strong')
             break;
 
         case 'north':
+        case 'n':
+        case 'go north':
+        case 'move north':
+            handleMovement('north');
+            break;
+            
         case 'east':
+        case 'e':
+        case 'go east':
+        case 'move east':
+            handleMovement('east');
+            break;
+            
         case 'west':
+        case 'w':
+        case 'go west':
+        case 'move west':
+            handleMovement('west');
+            break;
+            
         case 'south':
-            handleMovement(mainCommand);
+        case 's':
+        case 'go south':
+        case 'move south':
+            handleMovement('south');
             break;
 
         case 'room':
@@ -365,28 +511,39 @@ function processCommand(command) {
             displayRoom();
             break;
 
+        case 'inventory':
+        case 'bag':
+        case 'inv':
+        case 'i':
+            displayInventory();
+            break;
+
         case 'take':
         case 'grab':
         case 'pickup':
+        case 'pick':
+        case 'pick-up':
         case 'inspect':
         case 'open':
         case 'read':
         case 'drop':
         case 'light':
+        case 'turn-on':
             handleObjectInteraction(mainCommand, commandArgs[1]);
             break;
 
-        case 'inventory':
-        case 'bag':
-            displayInventory();
-            break;
-        
         case 'turn':
             handleObjectInteraction(mainCommand, commandArgs[2]);
             break;
 
+        case 'wait':
+        case 'sleep':
+        case 'rest':
+            printOutput("Time passes but you are no closer to getting home.")
+            break;
+
         default:
-            printOutput("Invalid command. Try again.");
+            printOutput("I don\'t know that command. Try again.");
     }
 }
 
