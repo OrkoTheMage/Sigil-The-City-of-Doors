@@ -383,6 +383,7 @@ function handleObjectInteraction(action, object) {
         switch (action) {
             case 'take':
             case 'grab':
+            case 'get':
             case 'pickup':
             case 'pick':
             case 'pick-up':
@@ -501,6 +502,7 @@ function processCommand(command) {
 
         case 'take':
         case 'grab':
+        case 'get':
         case 'pickup':
         case 'pick':
         case 'pick-up':
