@@ -334,14 +334,6 @@ function displayInventory() {
     }
 }
 
-function dropItem(item) {
-    if (inventory[item]) {
-        printOutput(`You dropped ${item}.`);
-        delete inventory[item];
-    } else {
-        printOutput(`You don't have ${item} in your inventory.`);
-    }
-}
 
 //**************************//
 //      GAME LOGIC: 2      //
@@ -394,6 +386,7 @@ function handleObjectInteraction(action, object) {
             case 'pickup':
             case 'pick':
             case 'pick-up':
+            case 'loot':
                 if (objects[object].take) {
                     objects[object].take();
                 } else {
@@ -403,31 +396,10 @@ function handleObjectInteraction(action, object) {
            
             case 'inspect':
             case 'read':
-            case 'look-at':
             case 'open':
-            case 'loot':
+            case 'examine':
+            case 'check':
                 printOutput(objects[object].description);
-                break;
-                
-            case 'drop':
-                dropItem(commandArgs[1]);
-                break;
-
-            case 'light':
-            case 'turn-on':
-                if (objects[object] && objects[object].light) {
-                objects[object].light();
-                    } else {
-                        printOutput(`You cannot light the ${object}.`);
-                            }
-                break;
-
-            case 'turn':
-                if (commandArgs[1] === 'off' && commandArgs[2] && objects[commandArgs[2]] && objects[commandArgs[2]].turnOff) {
-                        objects[commandArgs[2]].turnOff();
-                } else {
-                        printOutput(`You cannot turn off ${commandArgs[2]}.`);
-                        }
                 break;
 
             default:
@@ -444,13 +416,19 @@ function handleObjectInteraction(action, object) {
     //         case 'destroy':
     //         case 'break':
     //         case 'kill':
-    //             printOutput("What do you want to ${action} ${object} with?" )
-            
+    //             // Your logic for handling destruction, breaking, killing, etc.
+    //             break;
+    
     //         case 'hands':
-    //             printOutput("Best not.")
-
+    //             // Your logic for handling actions with hands.
+    //             break;
+    
     //         case 'sword':
-    //             printOutput("You swing your sword.")
+    //             // Your logic for handling actions with a sword.
+    //             break;
+    
+    //         default:
+    //             printOutput(`I don't know that action for ${object}. Try again.`);
     //     }
     // }
 }
@@ -466,10 +444,6 @@ function processCommand(command) {
     const commandArgs = command.split(' ');
     const mainCommand = commandArgs[0].toLowerCase();
     
-    if (mainCommand === 'go' || mainCommand === 'move') {
-        const direction = commandArgs[1] ? commandArgs[1].toLowerCase() : ''; // Get the direction if provided
-        handleMovement(direction);
-    }
     switch (mainCommand) {
         case 'clear':
             clear();
@@ -484,31 +458,29 @@ function processCommand(command) {
             printOutput('<strong>You can look at your inventory with the "inventory", "bag", "inv" or simpily "i" commands</strong')
             break;
 
+        case 'go':
+        case 'move':
+            const direction = commandArgs[1] ? commandArgs[1].toLowerCase() : '';
+            handleMovement(direction);
+            break;
+
         case 'north':
         case 'n':
-        case 'go north':
-        case 'move north':
             handleMovement('north');
             break;
-            
+
         case 'east':
         case 'e':
-        case 'go east':
-        case 'move east':
             handleMovement('east');
-            break;
-            
+            break;  
+
         case 'west':
         case 'w':
-        case 'go west':
-        case 'move west':
             handleMovement('west');
-            break;
-            
+            break;   
+                  
         case 'south':
         case 's':
-        case 'go south':
-        case 'move south':
             handleMovement('south');
             break;
 
@@ -532,16 +504,16 @@ function processCommand(command) {
         case 'pickup':
         case 'pick':
         case 'pick-up':
+        case 'loot':
         case 'inspect':
         case 'open':
         case 'read':
-        case 'drop':
-        case 'light':
-        case 'turn-on':
+        case 'check':
+        case 'examine':
             handleObjectInteraction(mainCommand, commandArgs[1]);
             break;
 
-        case 'turn':
+        case 'pick up':
             handleObjectInteraction(mainCommand, commandArgs[2]);
             break;
 
@@ -550,7 +522,8 @@ function processCommand(command) {
         // case 'break':
         // case 'hands':
         // case 'sword':
-        //     handleActions()
+        //     handleActions(mainCommand, commandArgs[1]);
+        //     break;
         
         case 'wait':
         case 'sleep':
