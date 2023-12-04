@@ -53,12 +53,12 @@ body {
 
 #ascii-art {
   position: fixed;
-  top: 12%;
+  top: 30%;
   left: 14%;
   right: 0;
   margin-bottom: 25%;
   font-size: 3vw;
-  animation: fadeOut 8s forwards; 
+  animation: fadeOut 5s forwards; 
 }
 
 @keyframes fadeOut {

@@ -2,7 +2,7 @@
 //  LISTNERS AND CLI HTML  //
 //************************//
 
-// Display CLI
+// DOMS
 document.addEventListener('DOMContentLoaded', function () {
     const cliContainer = document.getElementById('cli-container');
     const cliPrompt = document.getElementById('cli-prompt');
@@ -109,6 +109,8 @@ const rooms = {
         description: () => {
             if (foodGiven) {
                 return "Alley End: The half-orc, now satisfied with the food you gave him, watches you pass without hostility. To the south, you see a busy thoroughfare.";
+            } else if (wonCombat) {
+                return "Alley End: The half-orc, now dead, lies lifeless on the ground. You can proceed freely to the south, where you see a busy thoroughfare.";
             } else {
                 return "Alley End: Now visible, the figure is a half-orc. He's either unaware or too deranged to notice your presence. Though charging past him might change that. To the south, you see a busy thoroughfare.";
             }
@@ -124,7 +126,8 @@ const rooms = {
             default: 'You catch the half-orcs attention. The half-orc speaks: <strong>Berk! Where\'d you come from? No matter, nothing no-matters-not in this nonsense. It\'s all chaos and i\'m hungry. You have snack or are you my food?</strong>',
         },
         sneakAllowed: true,
-        sneakAttempted: false
+        sneakAttempted: false,
+        combatAvailable: true,
     },
     marketplace: {
         description: "Marketplace: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture.",
@@ -133,7 +136,13 @@ const rooms = {
         },
     },
     hallway: {
-      description: "Hallway: You are in a dimly lit hallway. There are doorways to the east and west and a dark room to the south.",
+      description: () => {
+        if (inventory.lantern) {
+            return "Hallway: You are in a, now well-lit, hallway. (Thanks to your lantern) There are doorways to the east and west. You can now see into the previous room to the south";
+        } else {
+            return "Hallway: You are in a dimly lit hallway. There are doorways to the east and west and a dark room to the south.";
+        }
+    },
       actions: {
         east: "kitchen",
         west: "storeroom",
@@ -175,16 +184,19 @@ rooms.start.actions.south = () => {
     }
 };
 
-// Able to get passed the Alleyend (food)
 rooms.alleyend.actions.south = () => {
-    if (foodGiven) {
+    if (wonCombat || foodGiven || sneakSuccessful) {
         return "marketplace";
-    } 
-    if (sneakSuccessful) {
-        return "marketplace";
-    }
-    else {
-        printOutput("You'll alert the half-orc. Find a way around or deal with him");
+    } else {
+        if (!inCombat && !attemptedSouth) {
+            // First time attempting to go south
+            attemptedSouth = true;
+            printOutput("You'll alert the half-orc. Find a way around or deal with him. (moving south will engage in combat)");
+        } else {
+            // Second time or more, enter combat
+            startCombat();
+            printOutput("The half-orc notices you, and the combat begins! (type the command 'attack' followed a type: 'quick, heavy, counter, dodge'");
+        }
         return null;
     }
 };
@@ -273,19 +285,16 @@ function takeItem(item) {
     if (inventorySize < maxInventorySize) {
         printOutput(`You take the ${item}.`);
         inventory[item] = true;
-    } 
-    if (item === 'sword') {
-        increaseScore(10);
-        updateCounters();
-    }
-    if (item === 'lantern') {
-        increaseScore(10);
-        updateCounters();
-    }
-    else {
+
+        if (item === 'sword' || item === 'lantern') {
+            increaseScore(10);
+            updateCounters();
+        }
+    } else {
         printOutput(`Your inventory is full. You cannot take the ${item}.`);
     }
 }
+
 
 // Function to give food, removes from inventory
 function giveFood() {
@@ -313,6 +322,7 @@ let playerScore = 0;
 const inventory = {};
 let sneakSuccessful = false;
 let foodGiven = false;
+let attemptedSouth = false;
 
 // Function for the move and score counters
 function updateCounters() {
@@ -375,30 +385,25 @@ function displayInventory() {
 //        HANDLERS         //
 //************************//
 
- // Function to handle player move actions
- function handleMovement(action) {
+// Function to handle player move actions
+function handleMovement(action) {
+    if (combatLocked) {
+        printOutput("You can't move during combat!");
+        return;
+    }
+
     if (currentRoom.actions[action]) {
-       
         moves++;
         updateCounters();
 
-        if (action === 'south' && currentRoom.actions.south instanceof Function) {
-            // If the action is 'south' and it's a function, call the function
-            const nextRoom = currentRoom.actions.south();
+        if ((action === 'south' || action === 'north' || action === 'east' || action === 'west') && currentRoom.actions[action] instanceof Function) {
+            // If the action is 'south', 'north', 'east', or 'west' and it's a function, call the function
+            const nextRoom = currentRoom.actions[action]();
             if (nextRoom) {
                 currentRoom = rooms[nextRoom];
                 displayRoom();
             }
-        } 
-        else if (action === 'north' && currentRoom.actions.north instanceof Function) {
-            // If the action is 'north' and it's a function, call the function
-            const nextRoom = currentRoom.actions.north();
-            if (nextRoom) {
-                currentRoom = rooms[nextRoom];
-                displayRoom();
-            }
-        }
-        else {
+        } else {
             // If it's a regular action, get the next room and update
             const nextRoom = rooms[currentRoom.actions[action]];
             currentRoom = nextRoom;
@@ -408,6 +413,7 @@ function displayInventory() {
         printOutput(`There is nothing to your ${action}. Try again.`);
     }
 }
+
 
 // Function to handle player object interactions
 function handleObjectInteraction(action, object) {
@@ -490,103 +496,116 @@ function handleSpeak() {
 //          COMBAT         //
 //************************//
 
-// // Globals for combat
-// let playerHealth = 40;
-// let foeHealth = 20;
-// let inCombat = false;
+// Globals for combat
+let playerHealth = 40;
+let foeHealth = 20;
+let inCombat = false;
+let wonCombat = false;
+let combatLocked = false;
 
-// // Function to start combat
-// function startCombat() {
-//     printOutput("You are now in combat!");
-//     inCombat = true;
-// }
+// Function to start combat
+function startCombat() {
+    printOutput("You are now in combat!");
+    inCombat = true;
+    combatLocked = true;
+}
 
-// // Function to end combat
-// function endCombat() {
-//     printOutput("Combat is over.");
-//     inCombat = false;
-//     // Reset health after combat
-//     playerHealth = 40;
-// }
+// Function to end combat
+function endCombat() {
+    inCombat = false;
+    combatLocked = false;
+    // Reset health after combat
+    playerHealth = 40;
+    foeHealth = 20;
+}
 
-// // Function to update health based on combat outcome
-// function updateHealth(outcome) {
-//     const playerDamage = outcome.result === 'lose' ? 5 : 0; // Adjust as needed
-//     const foeDamage = outcome.result === 'win' ? 5 : 0; // Adjust as needed
+// Function to update health based on combat outcome
+function updateHealth(outcome) {
+    const playerDamage = outcome.result === 'land a blow' ? (inventory.sword ? 10 : 5) : 0;
+    const foeDamage = outcome.result === 'got hit' ? 5 : 0;
 
-//     playerHealth -= playerDamage;
-//     foeHealth -= foeDamage;
+    playerHealth -= foeDamage;
+    foeHealth -= playerDamage;
 
-//     // Ensure health doesn't go below 0
-//     playerHealth = Math.max(playerHealth, 0);
-//     foeHealth = Math.max(foeHealth, 0);
-// }
+    // Ensure health doesn't go below 0
+    playerHealth = Math.max(playerHealth, 0);
+    foeHealth = Math.max(foeHealth, 0);
+}
 
-// // Function to determine attack type
-// function getAttackType(action) {
-//     const attackTypes = {
-//         heavy: 'heavy',
-//         quick: 'quick',
-//         counter: 'counter',
-//         dodge: 'dodge',
-//     };
-//     return attackTypes[action] || 'unknown';
-// }
+// Function to determine attack type
+function getAttackType(action) {
+    const attackTypes = {
+        heavy: 'heavy',
+        quick: 'quick',
+        counter: 'counter',
+        dodge: 'dodge',
+    };
+    return attackTypes[action] || 'unknown';
+}
 
-// // Function to determine combat outcome
-// function determineCombatOutcome(playerAction, enemyAction) {
-//     const playerAttackType = getAttackType(playerAction);
-//     const enemyAttackType = getAttackType(enemyAction);
+// Function to get a random enemy action
+function getRandomEnemyAction() {
+    const actions = ['quick', 'heavy', 'counter', 'dodge'];
+    const randomIndex = Math.floor(Math.random() * actions.length);
+    return actions[randomIndex];
+}
 
-//     if (playerAttackType === enemyAttackType) {
-//         return { result: 'draw', message: 'It\'s a draw!', endCombat: false };
-//     }
+function determineCombatOutcome(playerAction, enemyAction) {
+    const playerAttackType = getAttackType(playerAction);
+    const enemyAttackType = getAttackType(enemyAction);
 
-//     if (
-//         (playerAttackType === 'quick' && enemyAttackType === 'heavy') ||
-//         (playerAttackType === 'heavy' && enemyAttackType === 'counter') ||
-//         (playerAttackType === 'counter' && enemyAttackType === 'quick')
-//     ) {
-//         return { result: 'win', message: `You defeated the enemy with ${playerAction}!`, endCombat: true };
-//     } else if (playerAttackType === 'dodge') {
-//         return { result: 'draw', message: 'You dodged the enemy\'s attack!', endCombat: false };
-//     } else {
-//         return { result: 'lose', message: `You were defeated by the enemy's ${enemyAction}.`, endCombat: true };
-//     }
-// }
+    if (playerAttackType === enemyAttackType) {
+        return { result: 'draw', message: 'Attack again!' };
+    } else if (
+        (playerAttackType === 'quick' && enemyAttackType === 'heavy') ||
+        (playerAttackType === 'counter' && enemyAttackType === 'quick') ||
+        (playerAttackType === 'heavy' && enemyAttackType === 'counter')
+    ) {
+        return { result: 'land a blow', message: `You hit with ${playerAction}!` };
+    } else if (
+        (playerAttackType === 'quick' && enemyAttackType === 'counter') ||
+        (playerAttackType === 'counter' && enemyAttackType === 'heavy') ||
+        (playerAttackType === 'heavy' && enemyAttackType === 'quick')
+    ) {
+        return { result: 'got hit', message: `You were hit by the enemy's ${enemyAction}.` };
+    } else if (playerAttackType === 'dodge') {
+        return { result: 'dodged', message: 'You successfully dodged the enemy\'s attack!' };
+    } 
+}
 
-// // Function to handle combat actions
-// function handleCombatAction(action) {
-//     if (!inCombat && currentRoom === rooms.alleyend && action === 'attack') {
-//         startCombat();
-//         printOutput("The half-orc notices you, and the combat begins!");
-//     } else if (inCombat) {
-//         const enemyAction = getRandomEnemyAction();
 
-//         // Determine the outcome
-//         const outcome = determineCombatOutcome(action, enemyAction);
+function handleCombatAction(attackType) {
+    if (inCombat) {
+        
+        // Generate a new enemy action for each round
+        const enemyAction = getRandomEnemyAction();
 
-//         // Update health based on the outcome
-//         updateHealth(outcome);
+        // Determine the outcome
+        const outcome = determineCombatOutcome(attackType, enemyAction);
 
-//         // Display the outcome
-//         printOutput(`You ${outcome.result}! ${outcome.message}`);
+        // Update health based on the outcome
+        updateHealth(outcome);
 
-//         // Check if combat should end (e.g., player defeated the enemy)
-//         if (outcome.endCombat) {
-//             endCombat();
-//         }
-//     } else {
-//         printOutput("You are not in combat.");
-//     }
-// }
+        // Display the outcome
+        printOutput(`You ${outcome.result}! ${outcome.message}`);
 
-// // Function to get a random enemy action
-// function getRandomEnemyAction() {
-//     const actions = ['quick', 'heavy', 'counter', 'dodge'];
-//     const randomIndex = Math.floor(Math.random() * actions.length);
-//     return actions[randomIndex];
-// }
+        // Check if combat should end (e.g., player or foe health reaches 0)
+        if (playerHealth <= 0 || foeHealth <= 0) {
+            endCombat();
+
+            // Display a message based on winning or losing
+            if (playerHealth <= 0) {
+                printOutput("You have been defeated! Game Over.");
+            } else {
+                printOutput("Congratulations! You defeated the foe!");
+                wonCombat = true
+                displayRoom();
+            }
+        }
+    } else {
+        printOutput("You are not in combat.");
+    }
+}
 
 
 //**************************//
@@ -671,7 +690,12 @@ function processCommand(command) {
             printOutput("You have nothing to give/throw or can't give/throw this item");
                 }
             break;
-        
+            
+            case 'attack':
+                const attackType = commandArgs[1] ? commandArgs[1].toLowerCase() : '';
+                handleCombatAction(attackType);
+                break;
+
         case 'sneak':
         case 'hide':
         case 'stealth':
@@ -731,7 +755,12 @@ function processCommand(command) {
 //**************************//
 //     INITIALIZE GAME     //
 //************************//
-    document.getElementById('ascii-art').style.display= 'none'
+document.getElementById('cli-container').style.display = 'none'
+
+setTimeout(() => {
     displayRoom();
     updateCounters();
+    document.getElementById('cli-container').style.display = 'block'
+}, 5000); 
+
 });
