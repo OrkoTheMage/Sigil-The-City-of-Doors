@@ -78,29 +78,39 @@ function autoClear(limit) {
 
 const rooms = {
     
-    // Game Start / Dark Room / Study
-    start: {
-        description: () => {
-            if (inventory.lantern) {
-                return "Study: With your lantern illuminating the surroundings you can see this, once dark room, was working as someones study. Many books are strew about, in piles and scatter. There is a cellar hatch to the south.";
-            } else {
-                return "Dark Room: You are in a dark room, with a dilapidated desk. There is a weathered note on it. Light partially peaks in from a north hallway.";
-            }
-        },
-        objects: {
-            note: {
-                description: '<strong>"Welcome to Sigil!</strong> It seems you found a portal here, through the machinations of <strong>The Lady of Pain</strong>, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can." The note is signed <strong>"Proctor Torkka"</strong>.',
-                take: () => {takeItem('note');
-                },
+// Game Start / Dark Room / Study
+start: {
+    description: () => {
+        if (inventory.lantern) {
+            return "Study: With your lantern illuminating the surroundings you can see this, once dark room, was working as someone's study. Many books are strewn about, in piles and scatter. There is a cellar hatch to the south.";
+        } else {
+            return "Dark Room: You are in a dark room, with a dilapidated desk. There is a weathered note on it. Light partially peaks in from a north hallway.";
+        }
+    },
+    objects: {
+        note: {
+            description: '<strong>"Welcome to Sigil! It seems you found a portal here, through the machinations of The Lady of Pain, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can."</strong> The note is signed <strong>"Proctor Torkka"</strong>.',
+            take: () => {
+                takeItem('note');
             },
+        },
         desk: {
             description: 'There is nothing useful in the desk.',
-        },
-        books: {
-            description: 'You rummage through the books. Mostly garbage but your latern light catches a glint of something metallic, a sword. Take it?',
+            break: () => {
+                return 'The desk easily crumbles to your actions';
+            },
         },
         book: {
-            description: 'You rummage through the books. Mostly garbage but your latern light catches a glint of something metallic, a sword. Take it?',
+            description: 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take it?',
+            break: () => {
+                return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take it?';
+            },
+        },
+        books: {
+            description: 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take it?',
+            break: () => {
+                return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take it?';
+            },
         },
         sword: {
             description: "A quality sword sword",
@@ -108,17 +118,21 @@ const rooms = {
                 takeItem('sword');
             },
         },
-    },
-        actions: {
-            north: "hallway",
-            south: "alleyway",
-            take: "note",
-            inspect: "desk",
-            inspect: "books",
-            inspect: "book",
-            take: "sword",
+        hatch: {
+            description: 'A cellar hatch door with a keyhole.',
+            break: () => {
+                return 'You cannot break the hatch door. It\'s surprisingly sturdy';
+            },
+            breakWithSword: () => {
+                return 'You use your sword to break the hatch door. It shatters into pieces.';
+            },
         },
     },
+    actions: {
+        north: "hallway",
+        south: "alleyway",
+    },
+},
 
 
     // Alleyway
@@ -136,18 +150,23 @@ const rooms = {
         description: () => {
             if (foodGiven) {
                 return "Alley End: The half-orc, now satisfied with the food you gave him, watches you pass without hostility. To the south, you see a busy thoroughfare.";
-            } else if (wonCombat) {
+            } else if (wonOrcCombat) {
                 return "Alley End: The half-orc, now dead, lies lifeless on the ground. You can proceed freely to the south, where you see a busy thoroughfare.";
             } else {
                 return "Alley End: Now visible, the figure is a half-orc. He's either unaware or too deranged to notice your presence. Though charging past him might change that. To the south, you see a busy thoroughfare.";
             }
         },
+        objects: {
+            food: {
+                description: "Rotten food, who would eat this?",
+                give: () => {
+                    giveFood();
+                },
+            },
+        },
         actions: {
             north: "alleyway",
             south: "marketplace",
-            give: "giveFood",
-            sneak: "sneak",
-            speak: "speak"
         },
         dialogue: {
             default: 'You catch the half-orcs attention. The half-orc speaks: <strong>Berk! Where\'d you come from? No matter, nothing no-matters-not in this nonsense. It\'s all chaos and i\'m hungry. You have snack or are you my food?</strong>',
@@ -189,10 +208,16 @@ const rooms = {
         description: "Store Room: You are in a cellar store room. There are a number of run-down barrels within the room and a door leading east.",
         objects: {
             barrels: {
-                description: "You found a lantern, it's old but it might be useful. Take it?"       
+                description: "You found a lantern, it's old but it might be useful. Take it?",
+                break: () => {
+                    return "You found a lantern, it's old but it might be useful. Take it?";
+                },       
             },
             barrel: {
                 description: "You found a lantern, it's old but it might be useful. Take it?",
+                break: () => {
+                    return "You found a lantern, it's old but it might be useful. Take it?";
+                },
             },
             lantern: {
                 description: "An old lantern. Still has some fuel left in it.",
@@ -203,9 +228,6 @@ const rooms = {
         },
        actions: {
           east: "hallway",
-          inspect: "barrels",
-          inspect: "barrel",
-          take: "lantern",
         },
       },
 
@@ -219,9 +241,6 @@ const rooms = {
             take: () => {
                 takeItem('food');
             },
-            give: () => {
-                giveFood();
-            },
         },
         key: {
             description: "A small brass key.",
@@ -232,8 +251,6 @@ const rooms = {
       },
       actions: {
         west: "hallway",
-        take: "key",
-        take: "food",
       },
     },
   };
@@ -245,17 +262,22 @@ const rooms = {
 
 // Start room locked door
 rooms.start.actions.south = () => {
+    if (doorBroken) {
+        printOutput("The broken hatch door hangs loosely. You push it aside and enter an alleyway.");
+        return "alleyway";
+    }
     if (inventory.key) {
         printOutput("The hatch door creaks open. You unlock it with the key and enter an alleyway.");
         return "alleyway";
     } else {
-        printOutput("You find a hatch door, its locked.");
+        printOutput("You find a hatch door, it's locked.");
         return null;
     }
 };
 
+// Alley End Combat
 rooms.alleyend.actions.south = () => {
-    if (wonCombat || foodGiven || sneakSuccessful) {
+    if (wonOrcCombat || foodGiven || sneakSuccessful) {
         return "marketplace";
     } else {
         if (!inCombat && !attemptedSouth) {
@@ -329,6 +351,7 @@ const inventory = {};
 let sneakSuccessful = false;
 let foodGiven = false;
 let attemptedSouth = false;
+let doorBroken = false;
 
 // Function for the move and score counters
 function updateCounters() {
@@ -449,6 +472,21 @@ function handleObjectInteraction(action, object) {
                 printOutput(currentRoom.objects[object].description);
                 break;
 
+            case 'break':
+            case 'destroy':
+                if (currentRoom.objects[object].break) {
+                if (object === 'hatch' && inventory.sword) {
+                        printOutput(currentRoom.objects[object].breakWithSword());
+                        doorBroken = true;
+                            } else {
+                                printOutput(currentRoom.objects[object].break());
+                            }
+                        } else {
+                            printOutput(`You can't break the ${object}.`);
+                        }
+                        break;
+
+
             default:
                 printOutput("I don\'t know that command for " + object + ". Try again.");
         }
@@ -504,7 +542,7 @@ function handleSpeak() {
 let playerHealth = 40;
 let enemyHealth = 20;
 let inCombat = false;
-let wonCombat = false;
+let wonOrcCombat = false;
 let combatLocked = false;
 let playerOutcome;
 let enemyOutcome;
@@ -609,7 +647,7 @@ function handleCombatAction() {
                 printOutput("You have been defeated! Game Over.");
             } else {
                 printOutput("Congratulations! You defeated the foe!");
-                wonCombat = true;
+                wonOrcCombat = true;
                 displayRoom();
             }
         }
@@ -689,26 +727,25 @@ function processCommand(command) {
         case 'read':
         case 'check':
         case 'examine':
+        case 'destroy':
+        case 'break':
             handleObjectInteraction(mainCommand, commandArgs[1]);
             break;
             
-        case 'give':
-        case 'hand':
-        case 'throw':
-            const objectToGive = commandArgs[1];
-            if (currentRoom.actions.give && objects[objectToGive] && objects[objectToGive].give) {
-            objects[objectToGive].give();
-            } else {
-            printOutput("You have nothing to give/throw or can't give/throw this item");
-                }
-            break;
-            
-
+            case 'give':
+            case 'hand':
+            case 'throw':
+                const objectToGive = commandArgs[1];
+                if (currentRoom.objects && currentRoom.objects[objectToGive] && currentRoom.objects[objectToGive].give) {
+                    currentRoom.objects[objectToGive].give();
+                    } else {
+                        printOutput("You have nothing to give/throw or can't give/throw this item");
+                    }
+                    break;
+                    
         case 'attack':
         case 'kill':
         case 'hit':
-        case 'destroy':
-        case 'break':
             if (currentRoom.combatAvailable) {
                 startCombat();
             if (inCombat) {
