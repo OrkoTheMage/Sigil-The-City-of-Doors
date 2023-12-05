@@ -352,6 +352,7 @@ let sneakSuccessful = false;
 let foodGiven = false;
 let attemptedSouth = false;
 let doorBroken = false;
+let doneSecret = false;
 
 // Function for the move and score counters
 function updateCounters() {
@@ -666,6 +667,11 @@ function handleCombatAction() {
 
 // Function to process user input
 function processCommand(command) {
+    if (playerHealth <= 0) {
+        printOutput("You are dead. Game Over.");
+        return;
+    }
+
     printOutput(`>${command}`);
     const commandArgs = command.split(' ');
     const mainCommand = commandArgs[0].toLowerCase();
@@ -732,16 +738,16 @@ function processCommand(command) {
             handleObjectInteraction(mainCommand, commandArgs[1]);
             break;
             
-            case 'give':
-            case 'hand':
-            case 'throw':
-                const objectToGive = commandArgs[1];
-                if (currentRoom.objects && currentRoom.objects[objectToGive] && currentRoom.objects[objectToGive].give) {
-                    currentRoom.objects[objectToGive].give();
-                    } else {
-                        printOutput("You have nothing to give/throw or can't give/throw this item");
-                    }
-                    break;
+        case 'give':
+        case 'hand':
+        case 'throw':
+            const objectToGive = commandArgs[1];
+            if (currentRoom.objects && currentRoom.objects[objectToGive] && currentRoom.objects[objectToGive].give) {
+            currentRoom.objects[objectToGive].give();
+            } else {
+            printOutput("You have nothing to give/throw or can't give/throw this item");
+            }
+            break;
                     
         case 'attack':
         case 'kill':
@@ -809,9 +815,12 @@ function processCommand(command) {
             break;
 
         case 'xyzzy':
+            if (!doneSecret) {
             printOutput('I see you\'ve been here before...')
             increaseScore(10);
             updateCounters();
+            doneSecret = true;
+            }
             break;
 
         default:
