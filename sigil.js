@@ -79,6 +79,8 @@ function autoClear(limit) {
 //************************//
 
 const rooms = {
+    
+    // Game Start / Dark Room / Study
     start: {
         description: () => {
             if (inventory.lantern) {
@@ -87,6 +89,28 @@ const rooms = {
                 return "Dark Room: You are in a dark room, with a dilapidated desk. There is a weathered note on it. Light partially peaks in from a north hallway.";
             }
         },
+        objects: {
+            note: {
+                description: '<strong>"Welcome to Sigil!</strong> It seems you found a portal here, through the machinations of <strong>The Lady of Pain</strong>, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can." The note is signed <strong>"Proctor Torkka"</strong>.',
+                take: () => {takeItem('note');
+                },
+            },
+        desk: {
+            description: 'There is nothing useful in the desk.',
+        },
+        books: {
+            description: 'You rummage through the books. Mostly garbage but your latern light catches a glint of something metallic, a sword. Take it?',
+        },
+        book: {
+            description: 'You rummage through the books. Mostly garbage but your latern light catches a glint of something metallic, a sword. Take it?',
+        },
+        sword: {
+            description: "A quality sword sword",
+            take: () => {
+                takeItem('sword');
+            },
+        },
+    },
         actions: {
             north: "hallway",
             south: "alleyway",
@@ -98,6 +122,8 @@ const rooms = {
         },
     },
 
+
+    // Alleyway
     alleyway: {
         description: "Alleyway: You are in an alleyway, finally, sunlight! It appears you're in a large city, the alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar. ",
         actions: {
@@ -105,6 +131,9 @@ const rooms = {
             south: "alleyend"
         },
     },
+
+
+    // Alley End
     alleyend: {
         description: () => {
             if (foodGiven) {
@@ -129,12 +158,18 @@ const rooms = {
         sneakAttempted: false,
         combatAvailable: true,
     },
+
+
+    // Marketplace
     marketplace: {
         description: "Marketplace: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture.",
         actions: {
   
         },
     },
+
+
+    // Hallway
     hallway: {
       description: () => {
         if (inventory.lantern) {
@@ -149,17 +184,54 @@ const rooms = {
         south: "start"
       },
     },
+
+
+    // Store Room
     storeroom: {
         description: "Store Room: You are in a cellar store room. There are a number of run-down barrels within the room and a door leading east.",
-        actions: {
+        objects: {
+            barrels: {
+                description: "You found an lantern, it's old but it might be useful. Take it?"       
+            },
+            barrel: {
+                description: "You found an lantern, it's old but it might be useful. Take it?",
+            },
+            lantern: {
+                description: "An old lantern. Still has some fuel left in it.",
+                take: () => { 
+                    takeItem('lantern');
+                },
+            },
+        },
+       actions: {
           east: "hallway",
           inspect: "barrels",
           inspect: "barrel",
           take: "lantern",
         },
       },
+
+    
+    // Kitchen
     kitchen: {
       description: "Kitchen: You are in a dusty kitchen, full of rotting food. There is a key on the table and a door leading west.",
+      objects: {
+        food: {
+            description: "Rotten food, who would eat this?",
+            take: () => {
+                takeItem('food');
+            },
+            give: () => {
+                giveFood();
+            },
+        },
+        key: {
+            description: "A small brass key.",
+            take: () => {
+                takeItem('key');
+            },
+        },
+      },
       actions: {
         west: "hallway",
         take: "key",
@@ -170,7 +242,7 @@ const rooms = {
 
 
 //**************************//
-//      ROOM MODIFIERS      //
+//      ROOM MODIFIERS     //
 //************************//
 
 // Start room locked door
@@ -195,81 +267,10 @@ rooms.alleyend.actions.south = () => {
         } else {
             // Second time or more, enter combat
             startCombat();
-            printOutput("The half-orc notices you, and the combat begins! (type the command 'attack' followed a type: 'quick, heavy, counter, dodge'");
+            printOutput("The half-orc notices you, and the combat begins!")
         }
         return null;
     }
-};
-
-
-//**************************//
-//         OBJECTS         //
-//************************//
-
-
-const objects = {
-    note: {
-        description: '<strong>"Welcome to Sigil!</strong> It seems you found a portal here, through the machinations of <strong>The Lady of Pain</strong>, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can." The note is signed <strong>"Proctor Torkka"</strong>.',
-        take: () => {
-            takeItem('note');
-        },
-    },
-    desk: {
-        description: 'There is nothing useful in the desk.',
-        take: () => {
-        },
-    },
-    books: {
-        description: 'You rummage through the books. Mostly garbage but your latern light catches a glint of something metallic, a sword. Take it?',
-        take: () => {
-            takeItem('sword');
-        },
-    },
-    book: {
-        description: 'You rummage through the books. Mostly garbage but your latern light catches a glint of something metallic, a sword. Take it?',
-        take: () => {
-            takeItem('sword');
-        },
-    },
-    key: {
-        description: "A small brass key.",
-        take: () => {
-            takeItem('key');
-        },
-    },
-    food: {
-        description: "Rotten food, who would eat this?",
-        take: () => {
-            takeItem('food');
-        },
-        give: () => {
-            giveFood();
-        },
-    },
-    barrels: {
-        description: "You found an lantern, it's old but it might be useful. Take it?",
-        take: () => {
-        },
-    
-    },
-    barrel: {
-        description: "You found an lantern, it's old but it might be useful. Take it?",
-        take: () => {
-        },
-    
-    },
-    lantern: {
-        description: "An old lantern. Still has some fuel left in it.",
-        take: () => { 
-            takeItem('lantern');
-        },
-    },
-    sword: {
-        description: "a quality short sword",
-        take: () => {
-            takeItem('sword');
-        }
-    },
 };
 
 
@@ -283,12 +284,19 @@ function takeItem(item) {
     const maxInventorySize = 5;
 
     if (inventorySize < maxInventorySize) {
-        printOutput(`You take the ${item}.`);
-        inventory[item] = true;
-
-        if (item === 'sword' || item === 'lantern') {
+        if (item === 'sword') {
+            printOutput(`Under some books you find a sword. Truely mighter.`);
+            inventory[item] = true;
             increaseScore(10);
             updateCounters();
+        } else if (item === 'lantern') {
+            printOutput(`You take the lantern and turn it on.`);
+            inventory[item] = true;
+            increaseScore(10);
+            updateCounters();
+        } else {
+            printOutput(`You take the ${item}.`);
+            inventory[item] = true;
         }
     } else {
         printOutput(`Your inventory is full. You cannot take the ${item}.`);
@@ -305,7 +313,7 @@ function giveFood() {
         foodGiven = true;
 
     } else if (foodGiven) {
-        printOutput("You already gave the food. The half-orc seems content.");
+        printOutput("You already gave him food. The half-orc seems content.");
     } else {
         printOutput("You don't have any food to give.");
     }
@@ -415,13 +423,11 @@ function handleMovement(action) {
 }
 
 
-// Function to handle player object interactions
 function handleObjectInteraction(action, object) {
-    if (objects[object]) {
-        
+    if (currentRoom.objects && currentRoom.objects[object]) {
         moves++;
         updateCounters();
-    
+
         switch (action) {
             case 'take':
             case 'grab':
@@ -430,19 +436,19 @@ function handleObjectInteraction(action, object) {
             case 'pick':
             case 'pick-up':
             case 'loot':
-                if (objects[object].take) {
-                    objects[object].take();
+                if (currentRoom.objects[object].take) {
+                    currentRoom.objects[object].take();
                 } else {
                     printOutput("You can't take the " + object + ".");
                 }
                 break;
-           
+
             case 'inspect':
             case 'read':
             case 'open':
             case 'examine':
             case 'check':
-                printOutput(objects[object].description);
+                printOutput(currentRoom.objects[object].description);
                 break;
 
             default:
@@ -498,10 +504,12 @@ function handleSpeak() {
 
 // Globals for combat
 let playerHealth = 40;
-let foeHealth = 20;
+let enemyHealth = 20;
 let inCombat = false;
 let wonCombat = false;
 let combatLocked = false;
+let playerOutcome;
+let enemyOutcome;
 
 // Function to start combat
 function startCombat() {
@@ -514,83 +522,88 @@ function startCombat() {
 function endCombat() {
     inCombat = false;
     combatLocked = false;
-    // Reset health after combat
-    playerHealth = 40;
-    foeHealth = 20;
 }
 
-// Function to update health based on combat outcome
-function updateHealth(outcome) {
-    const playerDamage = outcome.result === 'land a blow' ? (inventory.sword ? 10 : 5) : 0;
-    const foeDamage = outcome.result === 'got hit' ? 5 : 0;
+function getRandomNumber(max) {
+    return Math.floor(Math.random() * max) + 1;
+}
 
-    playerHealth -= foeDamage;
-    foeHealth -= playerDamage;
+// Function for the main combat outcome logic
+function determineCombatOutcome() {
+    const playerRoll = getRandomNumber(4);
+    const enemyRoll = getRandomNumber(4);
+
+    // Determine player's outcome
+    if (playerRoll >= 3) {
+        if (playerRoll === 4) {
+            playerOutcome = { result: 'critical hit', message: 'You scored a critical hit!' };
+        } else {
+            playerOutcome = { result: 'hit', message: 'You hit the enemy!' };
+        }
+    } else {
+        playerOutcome = { result: 'miss', message: 'You missed the enemy.' };
+    }
+
+    // Determine enemy's outcome
+    if (enemyRoll >= 3) {
+        if (enemyRoll === 4) {
+            enemyOutcome = { result: 'critical hit', message: 'Your enemy landed a critical hit!' };
+        } else {
+            enemyOutcome = { result: 'hit', message: 'Your enemy landed a hit.' };
+        }
+    } else {
+        enemyOutcome = { result: 'miss', message: 'Your enemy missed.' };
+    }
+}
+
+function calculateDamage(outcome, hasSword) {
+    if (outcome.result === 'hit' || outcome.result === 'critical hit') {
+        if (outcome.result === 'critical hit') {
+            return hasSword ? 20 : 10; // Critical hit with sword deals 20 damage, without sword deals 10
+        } else {
+            return hasSword ? 10 : 5; // Regular hit with sword deals 10 damage, without sword deals 5
+        }
+    } else {
+        return 0; // Miss or other outcomes result in 0 damage
+    }
+}
+
+function updateHealth(playerOutcome, enemyOutcome) {
+    const playerDamage = calculateDamage(playerOutcome, inventory.sword);
+    const enemyDamage = calculateDamage(enemyOutcome, false); // Assuming enemy does not have a sword
+
+    playerHealth -= enemyDamage;
+    enemyHealth -= playerDamage;
 
     // Ensure health doesn't go below 0
     playerHealth = Math.max(playerHealth, 0);
-    foeHealth = Math.max(foeHealth, 0);
+    enemyHealth = Math.max(enemyHealth, 0);
+   
+    // Print player and enemy health
+   printOutput(`<strong>Player Health: ${playerHealth} | Enemy Health: ${enemyHealth}</strong>`);
+
+    if (playerHealth <= 20) {
+        printOutput("You've become greatly wounded");
+    }
+    if (enemyHealth <= 5) {
+        printOutput("Your enemy has become greatly wounded");
+    }
 }
 
-// Function to determine attack type
-function getAttackType(action) {
-    const attackTypes = {
-        heavy: 'heavy',
-        quick: 'quick',
-        counter: 'counter',
-        dodge: 'dodge',
-    };
-    return attackTypes[action] || 'unknown';
-}
-
-// Function to get a random enemy action
-function getRandomEnemyAction() {
-    const actions = ['quick', 'heavy', 'counter', 'dodge'];
-    const randomIndex = Math.floor(Math.random() * actions.length);
-    return actions[randomIndex];
-}
-
-function determineCombatOutcome(playerAction, enemyAction) {
-    const playerAttackType = getAttackType(playerAction);
-    const enemyAttackType = getAttackType(enemyAction);
-
-    if (playerAttackType === enemyAttackType) {
-        return { result: 'draw', message: 'Attack again!' };
-    } else if (
-        (playerAttackType === 'quick' && enemyAttackType === 'heavy') ||
-        (playerAttackType === 'counter' && enemyAttackType === 'quick') ||
-        (playerAttackType === 'heavy' && enemyAttackType === 'counter')
-    ) {
-        return { result: 'land a blow', message: `You hit with ${playerAction}!` };
-    } else if (
-        (playerAttackType === 'quick' && enemyAttackType === 'counter') ||
-        (playerAttackType === 'counter' && enemyAttackType === 'heavy') ||
-        (playerAttackType === 'heavy' && enemyAttackType === 'quick')
-    ) {
-        return { result: 'got hit', message: `You were hit by the enemy's ${enemyAction}.` };
-    } else if (playerAttackType === 'dodge') {
-        return { result: 'dodged', message: 'You successfully dodged the enemy\'s attack!' };
-    } 
-}
-
-
-function handleCombatAction(attackType) {
+// Function to handle combat actions later
+function handleCombatAction() {
     if (inCombat) {
-        
-        // Generate a new enemy action for each round
-        const enemyAction = getRandomEnemyAction();
-
-        // Determine the outcome
-        const outcome = determineCombatOutcome(attackType, enemyAction);
+        determineCombatOutcome();
 
         // Update health based on the outcome
-        updateHealth(outcome);
+        updateHealth(playerOutcome, enemyOutcome);
 
         // Display the outcome
-        printOutput(`You ${outcome.result}! ${outcome.message}`);
+        printOutput(`${playerOutcome.message}`);
+        printOutput(`${enemyOutcome.message}`);
 
         // Check if combat should end (e.g., player or foe health reaches 0)
-        if (playerHealth <= 0 || foeHealth <= 0) {
+        if (playerHealth <= 0 || enemyHealth <= 0) {
             endCombat();
 
             // Display a message based on winning or losing
@@ -598,7 +611,7 @@ function handleCombatAction(attackType) {
                 printOutput("You have been defeated! Game Over.");
             } else {
                 printOutput("Congratulations! You defeated the foe!");
-                wonCombat = true
+                wonCombat = true;
                 displayRoom();
             }
         }
@@ -606,6 +619,7 @@ function handleCombatAction(attackType) {
         printOutput("You are not in combat.");
     }
 }
+
 
 
 //**************************//
@@ -691,9 +705,20 @@ function processCommand(command) {
                 }
             break;
             
-            case 'attack':
-                const attackType = commandArgs[1] ? commandArgs[1].toLowerCase() : '';
-                handleCombatAction(attackType);
+
+        case 'attack':
+        case 'kill':
+        case 'hit':
+        case 'destroy':
+        case 'break':
+            if (currentRoom.combatAvailable) {
+                startCombat();
+            if (inCombat) {
+                handleCombatAction();
+                    }
+            } else {
+                printOutput("You cannot attack right now.");
+                }
                 break;
 
         case 'sneak':
@@ -725,9 +750,15 @@ function processCommand(command) {
             break;
 
         case 'equip':
-            printOutput("No need to equip anything you can only hold 5 items in your bag.")
+            printOutput("No need to equip anything you can only fit 5 items in your bag.")
             break;
             
+        case 'health':
+        case 'hp':
+        case 'hitpoints':
+            printOutput(`<strong>Player Health: ${playerHealth}</strong>`)
+            break;
+
         case 'help':
             printOutput ('<strong>If you need to go somewhere try commands like: </strong> north, south, east and west');
             printOutput('<strong>If you\'re lost try commands like: look, read, inspect, take - followed by an object</strong');
@@ -737,7 +768,9 @@ function processCommand(command) {
                 break;
         
         case 'help-combat':
-            printOutput('')
+            printOutput('You can <strong>start combat</strong> with vaid targets with the commands like "attack, kill or hit"')
+            printOutput('While in combat you <strong>cannot preform movements.</strong> use the "attack" command to roll for damage')
+            printOutput('<strong>You can check your health with the "health", "hitpoints" or "hp" commands</strong>')
             break;
 
         case 'xyzzy':
