@@ -43,9 +43,7 @@ function clear() {
         if (
             child !== cliPrompt &&
             child !== cliInput &&
-            !child.classList.contains('output') &&
-            !childrenToKeep.includes(child)
-        ) {
+            !child.classList.contains('output')) {
             cliContent.removeChild(child);
         }
     });
