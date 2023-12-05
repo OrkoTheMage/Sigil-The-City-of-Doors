@@ -191,10 +191,10 @@ const rooms = {
         description: "Store Room: You are in a cellar store room. There are a number of run-down barrels within the room and a door leading east.",
         objects: {
             barrels: {
-                description: "You found an lantern, it's old but it might be useful. Take it?"       
+                description: "You found a lantern, it's old but it might be useful. Take it?"       
             },
             barrel: {
-                description: "You found an lantern, it's old but it might be useful. Take it?",
+                description: "You found a lantern, it's old but it might be useful. Take it?",
             },
             lantern: {
                 description: "An old lantern. Still has some fuel left in it.",
