@@ -101,7 +101,7 @@ const rooms = {
     alleyway: {
         description: "Alleyway: You are in an alleyway, finally, sunlight! It appears you're in a large city, the alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar. ",
         actions: {
-            north: "study",
+            north: "start",
             south: "alleyend"
         },
     },
