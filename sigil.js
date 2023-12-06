@@ -298,30 +298,52 @@ rooms.alleyend.actions.south = () => {
 //     OBJECT FUNCTIONS    //
 //************************//
 
+
 // Function to add item to inventory
 function takeItem(item) {
     const inventorySize = Object.keys(inventory).length;
     const maxInventorySize = 5;
 
     if (inventorySize < maxInventorySize) {
-        if (item === 'sword') {
-            printOutput(`Under some books you find a sword. Truely mighter.`);
-            inventory[item] = true;
-            increaseScore(10);
-            updateCounters();
-        } else if (item === 'lantern') {
-            printOutput(`You take the lantern and turn it on.`);
-            inventory[item] = true;
-            increaseScore(10);
-            updateCounters();
-        } else {
-            printOutput(`You take the ${item}.`);
-            inventory[item] = true;
-        }
+        if (!inventory[item]) {
+            if (item === 'sword') {
+                inventory[item] = {
+                    description: "A quality sword.",
+                };
+                printOutput(`Under some books you find a sword. Truly mighty.`);
+                increaseScore(10);
+                updateCounters();
+            } else if (item === 'lantern') {
+                inventory[item] = {
+                    description: "An old lantern. Still has some fuel left in it.",
+                };
+                printOutput(`You take the lantern and turn it on.`);
+                increaseScore(10);
+                updateCounters();
+            } else if (item === 'food') {
+                inventory[item] = {
+                    description: "Rotten food. Who would eat this?",
+                };
+                printOutput(`You take the ${item}.`);
+            } else if (item === 'key') {
+                inventory[item] = {
+                    description: "A small brass key.",
+                };
+                printOutput(`You take the ${item}.`);
+            } else if (item === 'note') {
+                inventory[item] = {
+                    description: '<strong>A note signed "Proctor Torkka": "Welcome to Sigil! It seems you found a portal here, through the machinations of The Lady of Pain, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can."</strong>',
+                };
+                printOutput(`You take the ${item}.`);
+            } else {
+                printOutput(`Cannot take the ${item}.`);
+            }
+        } 
     } else {
         printOutput(`Your inventory is full. You cannot take the ${item}.`);
     }
 }
+
 
 
 // Function to give food, removes from inventory
@@ -446,6 +468,11 @@ function handleMovement(action) {
 
 
 function handleObjectInteraction(action, object) {
+    if (inventory[object]) {
+        const itemDescription = inventory[object].description;
+        printOutput(`${itemDescription}`);
+        return;
+    }
     if (currentRoom.objects && currentRoom.objects[object]) {
         moves++;
         updateCounters();
