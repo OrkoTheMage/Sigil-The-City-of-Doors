@@ -379,6 +379,7 @@ let foodGiven = false;
 let attemptedSouth = false;
 let doorBroken = false;
 let doneSecret = false;
+let dropConfirmation = false;
 
 // Functions for the move and score counters
 function updateCounters() {
@@ -458,7 +459,6 @@ function handleMovement(action) {
     }
 }
 
-
 function handleObjectInteraction(action, object) {
     if (inventory[object]) {
         const itemDescription = inventory[object].description;
@@ -514,6 +514,25 @@ function handleObjectInteraction(action, object) {
         printOutput(action + " what? There was no object in that command.");
     } else {
         printOutput("There is no " + object + " to " + action + ".");
+    }
+}
+
+function handleDrop(itemToDrop) {
+    if (dropConfirmation) {
+        // Confirmation is already requested, drop the item
+        dropConfirmation = false;
+
+        if (inventory[itemToDrop]) {
+            printOutput(`You drop the ${itemToDrop}.`);
+            delete inventory[itemToDrop];
+            updateCounters();
+        } else {
+            printOutput(`You don't have ${itemToDrop} in your inventory.`);
+        }
+    } else {
+        // Request confirmation for item drop
+        printOutput(`Are you sure you want to drop the ${itemToDrop}? This item will be destroyed. Type 'drop [item name]' again to confirm.`);
+        dropConfirmation = true;
     }
 }
 
@@ -769,6 +788,10 @@ function processCommand(command) {
         case 'destroy':
         case 'break':
             handleObjectInteraction(mainCommand, commandArgs[1]);
+            break;
+
+        case 'drop':
+            handleDrop(commandArgs[1]);
             break;
             
         case 'give':
