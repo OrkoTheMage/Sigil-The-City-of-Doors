@@ -33,7 +33,7 @@ function printOutput(message) {
     // Append the new message to the content div
     document.getElementById('cli-content').appendChild(outputContainer);
 
-    autoClear(6); // Assuming you want to clear after a certain number of messages
+    autoClear(6); // Adjust
 }
 
 // Function to manually clear the CLI
@@ -179,7 +179,7 @@ start: {
 
     // Marketplace
     marketplace: {
-        description: "Marketplace: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture. Bustling through streets, smoke choked alleys, large centers. The city seems to wrap - above you, even.",
+        description: "Marketplace: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture, smoke choked alleys, large centers. The city seems to wrap - above you, even.",
         actions: {
   
         },
@@ -253,7 +253,7 @@ start: {
         west: "hallway",
       },
     },
-    // Markecenter
+    // Marketcenter
     marketcenter: {
         description: "Market Center: This is the market center description",
         actions: {
@@ -322,7 +322,7 @@ function takeItem(item) {
                 inventory[item] = {
                     description: "A quality sword.",
                 };
-                printOutput(`Under some books you find a sword. Truly mighty.`);
+                printOutput(`Under some books you find a sword. Truly mightier.`);
                 increaseScore(10);
                 updateCounters();
             } else if (item === 'lantern') {
@@ -427,10 +427,8 @@ function displayRoom() {
             printOutput("<strong>Chapter 1: END</strong>");
         }, 2000);
     }, 2000);
+    // setTimeout(currentRoom = "marketcenter", displayRoom(), 3000)
 }
-
-//     setTimeout(currentRoom = marketcenter, displayRoom(), 3000)
-
 
     printOutput(`${boldText}`);
     printOutput(`${unboldedText}`);
@@ -590,7 +588,7 @@ function handleEat(itemToEat) {
             return;
         }
         if (itemToEat === 'note') {
-            printOutput(`You eat the ${itemToEat}. Maybe you consume its knowledge. Probably not.`);
+            printOutput(`You eat the ${itemToEat}. Maybe you consume it's knowledge. Probably not.`);
             delete inventory.note;
             return;
         }
@@ -834,6 +832,7 @@ function processCommand(command) {
         // Break    
         case 'break':
         case 'destroy':
+        case 'bash':
             handleObjectInteraction(mainCommand, commandArgs[1]);
             break;
 
