@@ -303,8 +303,12 @@ rooms.alleyend.actions.south = () => {
 function takeItem(item) {
     const inventorySize = Object.keys(inventory).length;
     const maxInventorySize = 5;
-
+    
+    // Checks for inventory limit
     if (inventorySize < maxInventorySize) {
+        
+        // Following only happens if item is not in inventory
+        // Descriptions are used later for an "if" in the object handler
         if (!inventory[item]) {
             if (item === 'sword') {
                 inventory[item] = {
@@ -346,7 +350,7 @@ function takeItem(item) {
 
 
 
-// Function to give food, removes from inventory
+// Function to give food, removes from inventory (Only really applies in the Alley End)
 function giveFood() {
     if (inventory.food && !foodGiven) {
         printOutput("You give the rotten food to the half-orc. He takes it and nods, allowing you to pass peacefully.");
@@ -376,7 +380,7 @@ let attemptedSouth = false;
 let doorBroken = false;
 let doneSecret = false;
 
-// Function for the move and score counters
+// Functions for the move and score counters
 function updateCounters() {
     const movesInfoElement = document.getElementById('moves-info');
     movesInfoElement.innerHTML = `<p>Moves: ${moves}</p>`;
@@ -384,27 +388,29 @@ function updateCounters() {
     const scoreInfoElement = document.getElementById('score-info');
     scoreInfoElement.innerHTML = `<p>Score: ${playerScore}</p>`;
 }
-
 function increaseScore(points) {
     playerScore += points;
 }
 
 // Function to display current room description
 function displayRoom() {
-    //checks to see if descript is a function or regular.
+    
+    // Checks to see if descript is a function or regular.
     const description = typeof currentRoom.description === 'function'
         ? currentRoom.description() 
         : currentRoom.description;
-
+    
+    // Text styling within the CLI
     const descriptionParts = description.split(':');
     const boldText = `<strong>${descriptionParts[0]}</strong>`;
     const unboldedText = descriptionParts.slice(1).join('.');
 
-    // Update the room info element
+    // Update the room info element (title bar)
     const roomInfoElement = document.getElementById('room-info');
     roomInfoElement.innerHTML = `<p>${boldText}</p>`;
 
-if (currentRoom === rooms.marketplace) {
+    // Chapter 1 ending text
+    if (currentRoom === rooms.marketplace) {
     setTimeout(() => {
         printOutput("<strong>...and you are totally lost</strong>");
         setTimeout(() => {
@@ -415,20 +421,6 @@ if (currentRoom === rooms.marketplace) {
 
     printOutput(`${boldText}`);
     printOutput(`${unboldedText}`);
-}
-
-
-// Function to keep track of inventory
-function displayInventory() {
-    const inventoryItems = Object.keys(inventory);
-    if (inventoryItems.length > 0) {
-        printOutput("<strong>Inventory:</strong>");
-        inventoryItems.forEach(item => {
-            printOutput(`- ${item}`);
-        });
-    } else {
-        printOutput("Your inventory is empty.");
-    }
 }
 
 
@@ -561,6 +553,20 @@ function handleSpeak() {
     }
 }
 
+// Function for the "inventory" player action
+function displayInventory() {
+    const inventoryItems = Object.keys(inventory);
+    if (inventoryItems.length > 0) {
+        printOutput("<strong>Inventory:</strong>");
+        inventoryItems.forEach(item => {
+            printOutput(`- ${item}`);
+        });
+    } else {
+        printOutput("Your inventory is empty.");
+    }
+}
+
+
 //**************************//
 //       GAME LOGIC: 3      //
 //          COMBAT         //
@@ -588,6 +594,7 @@ function endCombat() {
     combatLocked = false;
 }
 
+// Function needed for the dice roll
 function getRandomNumber(max) {
     return Math.floor(Math.random() * max) + 1;
 }
@@ -634,7 +641,7 @@ function calculateDamage(outcome, hasSword) {
 
 function updateHealth(playerOutcome, enemyOutcome) {
     const playerDamage = calculateDamage(playerOutcome, inventory.sword);
-    const enemyDamage = calculateDamage(enemyOutcome, false); // Assuming enemy does not have a sword
+    const enemyDamage = calculateDamage(enemyOutcome, false);
 
     playerHealth -= enemyDamage;
     enemyHealth -= playerDamage;
@@ -654,7 +661,7 @@ function updateHealth(playerOutcome, enemyOutcome) {
     }
 }
 
-// Function to handle combat actions later
+// Function to handle combat actions 
 function handleCombatAction() {
     if (inCombat) {
         determineCombatOutcome();
@@ -685,14 +692,13 @@ function handleCombatAction() {
 }
 
 
-
 //**************************//
 //      GAME LOGIC: 4      //
 //      CLI COMMANDS      //
 //************************//
 
-
-// Function to process user input
+// Function to process user inputs 
+// (often commandArgs[1] is the players action and [2] is the object)
 function processCommand(command) {
     if (playerHealth <= 0) {
         printOutput("You are dead. Game Over.");
@@ -859,6 +865,7 @@ function processCommand(command) {
 //**************************//
 //     INITIALIZE GAME     //
 //************************//
+
 document.getElementById('cli-container').style.display = 'none'
 
 setTimeout(() => {
