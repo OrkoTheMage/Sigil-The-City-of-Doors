@@ -179,7 +179,7 @@ start: {
 
     // Marketplace
     marketplace: {
-        description: "Marketplace: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture.",
+        description: "Marketplace: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture. Bustling through streets, smoke choked alleys, large centers. The city seems to wrap - above you, even.",
         actions: {
   
         },
@@ -253,6 +253,14 @@ start: {
         west: "hallway",
       },
     },
+    // Markecenter
+    marketcenter: {
+        description: "Market Center: This is the market center description",
+        actions: {
+  
+        },
+    },
+    
   };
 
 
@@ -380,6 +388,7 @@ let attemptedSouth = false;
 let doorBroken = false;
 let doneSecret = false;
 let dropConfirmation = false;
+let triedEating = false;
 
 // Functions for the move and score counters
 function updateCounters() {
@@ -419,6 +428,9 @@ function displayRoom() {
         }, 2000);
     }, 2000);
 }
+
+//     setTimeout(currentRoom = marketcenter, displayRoom(), 3000)
+
 
     printOutput(`${boldText}`);
     printOutput(`${unboldedText}`);
@@ -506,7 +518,6 @@ function handleObjectInteraction(action, object) {
                         }
                         break;
 
-
             default:
                 printOutput("I don\'t know that command for " + object + ". Try again.");
         }
@@ -571,6 +582,34 @@ function handleSpeak() {
         printOutput("You speak to yourself.");
     }
 }
+function handleEat(itemToEat) {
+    if (inventory[itemToEat]) {
+        if (itemToEat === 'food' && !triedEating) {
+            printOutput(`You shouldn't eat the ${itemToEat}. It's rotten.`);
+            triedEating = true;
+            return;
+        }
+        if (itemToEat === 'note') {
+            printOutput(`You eat the ${itemToEat}. Maybe you consume its knowledge. Probably not.`);
+            delete inventory.note;
+            return;
+        }
+        
+        if (itemToEat === 'food' && triedEating) {
+            printOutput(`Against warning. You eat the rotten food. It tastes terrible`);
+            playerHealth -= 5;
+            printOutput(`<strong>Player Health: ${playerHealth}</strong>`);
+            triedEating = false;
+            return;
+        }
+        else {
+            printOutput(`You can't eat the ${itemToEat}.`);
+        }
+    } else {
+        printOutput(`You don't have ${itemToEat} in your inventory.`);
+    }
+}
+
 
 // Function for the "inventory" player action
 function displayInventory() {
@@ -717,7 +756,7 @@ function handleCombatAction() {
 //************************//
 
 // Function to process user inputs 
-// (often commandArgs[1] is the players action and [2] is the object)
+// (often mainCommand is the players action and CommandArgs[1] is the object)
 function processCommand(command) {
     if (playerHealth <= 0) {
         printOutput("You are dead. Game Over.");
@@ -735,6 +774,7 @@ function processCommand(command) {
 
         case 'go':
         case 'move':
+            // CommandArgs[1] here is the direction
             const direction = commandArgs[1] ? commandArgs[1].toLowerCase() : '';
             handleMovement(direction);
             break;
@@ -763,6 +803,10 @@ function processCommand(command) {
         case 'where':
         case 'look':
         case 'here':
+        case 'see':
+        case 'around':
+        case 'surrounding':
+        case 'surroundings':
             displayRoom();
             break;
 
@@ -773,6 +817,7 @@ function processCommand(command) {
             displayInventory();
             break;
 
+        // Take
         case 'take':
         case 'grab':
         case 'get':
@@ -780,18 +825,29 @@ function processCommand(command) {
         case 'pick':
         case 'pick-up':
         case 'loot':
+        // Inspect
         case 'inspect':
         case 'open':
         case 'read':
         case 'check':
         case 'examine':
-        case 'destroy':
+        // Break    
         case 'break':
+        case 'destroy':
             handleObjectInteraction(mainCommand, commandArgs[1]);
             break;
 
         case 'drop':
+        case 'trash':
+        case 'remove':
+        case 'delete':
             handleDrop(commandArgs[1]);
+            break;
+
+        case 'eat':
+        case 'consume':
+        case 'devour':
+            handleEat(commandArgs[1]);
             break;
             
         case 'give':
@@ -838,15 +894,10 @@ function processCommand(command) {
             printOutput("Time passes but you are no closer to getting home.")
             break;
 
-        case 'think':
-        case 'consider':
-        case 'imagine':
-        case 'recall':
-        case 'remember':
-            printOutput("You need to find a way out of this cellar and figure out just where the hell you ended up at. What did that note say?")
-            break;
-
         case 'equip':
+        case 'wield':
+        case 'hold':
+        case 'put-on':
             printOutput("No need to equip anything you can only fit 5 items in your bag.")
             break;
             
@@ -858,8 +909,8 @@ function processCommand(command) {
 
         case 'help':
             printOutput ('<strong>If you need to go somewhere try commands like: </strong> north, south, east and west');
-            printOutput('<strong>If you\'re lost try commands like: look, read, inspect, take - followed by an object</strong');
-            printOutput('verbs like give, sneak and attack can be useful');
+            printOutput('<strong>If you\'re lost try commands like: look, read, inspect, take, drop - followed by an object</strong');
+            printOutput('verbs like give, speak, sneak, eat and attack can be useful');
             printOutput('<strong>You can look at your inventory with the "inventory", "bag", "inv" or simpily "i" commands</strong');
             printOutput('You may also want to see "help-combat"')
                 break;
