@@ -89,7 +89,7 @@ start: {
     },
     objects: {
         note: {
-            description: '<strong>"Welcome to Sigil! It seems you found a portal here, through the machinations of The Lady of Pain, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can."</strong> The note is signed <strong>"Proctor Torkka"</strong>.',
+            description: '<strong>"Welcome to Sigil! It seems you found a portal here, through the machinations of The Lady of Pain, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can."</strong> The note is signed <strong>"Factotum Torkka"</strong>.',
             take: () => {
                 takeItem('note');
             },
@@ -344,7 +344,7 @@ function takeItem(item) {
                 printOutput(`You take the ${item}.`);
             } else if (item === 'note') {
                 inventory[item] = {
-                    description: '<strong>A note signed "Proctor Torkka": "Welcome to Sigil! It seems you found a portal here, through the machinations of The Lady of Pain, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can."</strong>',
+                    description: '<strong>A note signed "Factotum Torkka": "Welcome to Sigil! It seems you found a portal here, through the machinations of The Lady of Pain, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can."</strong>',
                 };
                 printOutput(`You take the ${item}.`);
             } else {
@@ -487,6 +487,12 @@ function handleObjectInteraction(action, object) {
             case 'pick':
             case 'pick-up':
             case 'loot':
+            case 'accept':
+            case 'capture':
+            case 'collect':
+            case 'have':
+            case 'receive':
+            case 'reach':
                 if (currentRoom.objects[object].take) {
                     currentRoom.objects[object].take();
                 } else {
@@ -495,15 +501,25 @@ function handleObjectInteraction(action, object) {
                 break;
 
             case 'inspect':
-            case 'read':
             case 'open':
-            case 'examine':
+            case 'read':
             case 'check':
+            case 'examine':
+            case 'scan':
+            case 'investigate':
+            case 'observe':
+            case 'study':
+            case 'search':
                 printOutput(currentRoom.objects[object].description);
                 break;
 
             case 'break':
             case 'destroy':
+            case 'bash':
+            case 'crush':
+            case 'smash':
+            case 'wreck':
+            case 'shatter':
                 if (currentRoom.objects[object].break) {
                 if (object === 'hatch' && inventory.sword) {
                         printOutput(currentRoom.objects[object].breakWithSword());
@@ -549,6 +565,7 @@ function handleDrop(itemToDrop) {
 function handleSneak() {
     if (currentRoom.sneakAllowed && !currentRoom.sneakAttempted) {
         printOutput("You attempt to sneak quietly.");
+        updateCounters();
 
         // Determine the outcome (50/50 chance)
         sneakSuccessful = Math.random() < 0.5;
@@ -805,6 +822,8 @@ function processCommand(command) {
         case 'around':
         case 'surrounding':
         case 'surroundings':
+        case 'notice':
+        case 'view':
             displayRoom();
             break;
 
@@ -812,6 +831,7 @@ function processCommand(command) {
         case 'bag':
         case 'inv':
         case 'i':
+        case 'gear':
             displayInventory();
             break;
 
@@ -823,16 +843,31 @@ function processCommand(command) {
         case 'pick':
         case 'pick-up':
         case 'loot':
+        case 'accept':
+        case 'capture':
+        case 'collect':
+        case 'have':
+        case 'receive':
+        case 'reach':
         // Inspect
         case 'inspect':
         case 'open':
         case 'read':
         case 'check':
         case 'examine':
+        case 'scan':
+        case 'investigate':
+        case 'observe':
+        case 'study':
+        case 'search':
         // Break    
         case 'break':
         case 'destroy':
         case 'bash':
+        case 'crush':
+        case 'smash':
+        case 'wreck':
+        case 'shatter':
             handleObjectInteraction(mainCommand, commandArgs[1]);
             break;
 
@@ -840,18 +875,28 @@ function processCommand(command) {
         case 'trash':
         case 'remove':
         case 'delete':
+        case 'abandon':
+        case 'dump':
+        case 'release':
             handleDrop(commandArgs[1]);
             break;
 
         case 'eat':
         case 'consume':
         case 'devour':
+        case 'bite':
+        case 'ingest':
+        case 'dine':
+        case 'chew':
             handleEat(commandArgs[1]);
             break;
             
         case 'give':
         case 'hand':
         case 'throw':
+        case 'donate':
+        case 'provide':
+        case 'deliver':
             const objectToGive = commandArgs[1];
             if (currentRoom.objects && currentRoom.objects[objectToGive] && currentRoom.objects[objectToGive].give) {
             currentRoom.objects[objectToGive].give();
@@ -863,6 +908,13 @@ function processCommand(command) {
         case 'attack':
         case 'kill':
         case 'hit':
+        case 'assault':
+        case 'beat':
+        case 'harm':
+        case 'charge':
+        case 'hurt':
+        case 'stab':
+        case 'strike':
             if (currentRoom.combatAvailable) {
                 startCombat();
             if (inCombat) {
@@ -876,6 +928,8 @@ function processCommand(command) {
         case 'sneak':
         case 'hide':
         case 'stealth':
+        case 'creep':
+        case 'evade':
             handleSneak();
             break;
         
@@ -884,12 +938,19 @@ function processCommand(command) {
         case 'ask':
         case 'say':
         case 'chat':
+        case 'communicate':
+        case 'voice':
+        case 'whisper':
+        case 'shout':
             handleSpeak();
             break;
 
         case 'wait':
         case 'sleep':
         case 'rest':
+        case 'stay':
+        case 'watch':
+        case 'relax':
             printOutput("Time passes but you are no closer to getting home.")
             break;
 
@@ -897,12 +958,16 @@ function processCommand(command) {
         case 'wield':
         case 'hold':
         case 'put-on':
+        case 'dress':
+        case 'adorn':
             printOutput("No need to equip anything you can only fit 5 items in your bag.")
             break;
             
         case 'health':
         case 'hp':
         case 'hitpoints':
+        case 'self':
+        case 'person':
             printOutput(`<strong>Player Health: ${playerHealth}</strong>`)
             break;
 
