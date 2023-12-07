@@ -151,7 +151,7 @@ start: {
             if (foodGiven) {
                 return "Alley End: The half-orc, now satisfied with the food you gave him, watches you pass without hostility. To the south, you see a busy thoroughfare.";
             } else if (wonOrcCombat) {
-                return "Alley End: The half-orc, now dead, lies lifeless on the ground. You can proceed freely to the south, where you see a busy thoroughfare.";
+                return "Alley End: The half-orc, now dead, lies lifeless on the ground. Tucked under his garb, a brass crest, draws your attention. You can proceed freely to the south, where you see a busy thoroughfare.";
             } else {
                 return "Alley End: Now visible, the figure is a half-orc. He's either unaware or too deranged to notice your presence. Though charging past him might change that. To the south, you see a busy thoroughfare.";
             }
@@ -161,6 +161,16 @@ start: {
                 give: () => {
                     giveFood();
                 },
+
+            },
+            crest: {
+                description: "A strange crest bearing the markings of a cowl or helmet of some-kind.",
+                take: () => {
+                    takeItem('crest');
+                },
+            },
+            "half-orc": {
+                description: "A large half-orc, clad in dark-iron armor with some-kind of crest on it. He looks confused, or hungry",       
             },
         },
         actions: {
@@ -278,6 +288,11 @@ start: {
          dialogue: {
             default: '<strong>"You there! Berk, Did you just get here? Got any coins from...Where ever you came from? I got quality Modron cortices or would you care for some wyvern teeth?</strong>'
          },
+         objects: {
+            "devil": {
+                description: "A red-tinted devil running a stand of various strange items. Though he gives off a strong presence, he doesn't seem like he'd put up a fight.",       
+            },
+         },
         actions: {
             west: "marketcenter",
             north: "northeastalleyway",
@@ -301,6 +316,19 @@ start: {
 //**************************//
 //      ROOM MODIFIERS     //
 //************************//
+
+//Global flags for rooms
+let sneakSuccessful = false;
+let foodGiven = false;
+let attemptedSouth = false;
+let doorBroken = false;
+let doneSecret = false;
+let dropConfirmation = false;
+let triedEating = false;
+let dialogueStarted = false;
+let alreadyBeenMarket = false;
+let alreadyBeenMarketEast = false;
+
 
 // Start room locked door
 rooms.start.actions.south = () => {
@@ -341,12 +369,11 @@ rooms.alleyend.actions.south = () => {
 //     OBJECT FUNCTIONS    //
 //************************//
 
-
 // Function to add item to inventory
 function takeItem(item) {
     const inventorySize = Object.keys(inventory).length;
     const maxInventorySize = 5;
-    
+
     // Checks for inventory limit
     if (inventorySize < maxInventorySize) {
         
@@ -382,6 +409,12 @@ function takeItem(item) {
                     description: '<strong>A note signed "Factotum Torkka": "Welcome to Sigil! It seems you found a portal here, through the machinations of The Lady of Pain, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can."</strong>',
                 };
                 printOutput(`You take the ${item}.`);
+            } else if (wonOrcCombat && item === 'crest') {
+                inventory[item] = {
+                    description: "A strange crest bearing the markings of a cowl or helmet of some-kind.",
+                };
+                printOutput(`You take the ${item}.`);
+                // Additional code specific to winning the orc combat and taking the 'crest' item
             } else {
                 printOutput(`Cannot take the ${item}.`);
             }
@@ -390,7 +423,6 @@ function takeItem(item) {
         printOutput(`Your inventory is full. You cannot take the ${item}. Maybe you should leave some items behind`);
     }
 }
-
 
 
 // Function to give food, removes from inventory (Only really applies in the Alley End)
@@ -413,21 +445,12 @@ function giveFood() {
 //       GAME STATE       //
 //************************//
 
-//Globals
+//Globals for gamestate
 let currentRoom = rooms.start;
 let moves = 0;
 let playerScore = 0;
 const inventory = {};
-let sneakSuccessful = false;
-let foodGiven = false;
-let attemptedSouth = false;
-let doorBroken = false;
-let doneSecret = false;
-let dropConfirmation = false;
-let triedEating = false;
-let dialogueStarted = false;
-let alreadyBeenMarket = false;
-let alreadyBeenMarketEast = false;
+
 
 // Functions for the move and score counters
 function updateCounters() {
@@ -668,13 +691,14 @@ function handleEat(itemToEat) {
 function handleSpeak(mainCommand) {
     
     // Half-Orc Dialogue
-    if (currentRoom === rooms.alleyend && !dialogueStarted) {
+    if (currentRoom === rooms.alleyend && !dialogueStarted && !wonOrcCombat) {
         printOutput(rooms.alleyend.dialogue.default);
 
         // Add dialogue options for the player
         printOutput("1. Offer him some food.");
         printOutput("2. Threaten him.");
-        printOutput("3. Ignore him and leave.");
+        printOutput('3. Ask him what "The Pits" are');
+        printOutput("4. Ignore him and leave.");
 
         dialogueStarted = true;
         return
@@ -698,24 +722,29 @@ function handleSpeak(mainCommand) {
                 break;
 
             case "3":
+                printOutput('<strong> "The Grease Pits. Only-be the best eats this side of the..."</strong> He pauses, lost in thought, and grestures to form a circle. <strong>"Wait...do circles have sides?</strong>');
+                break;
+
+            case "4":
                 printOutput("You ignore the half-orc and leave.");
                 break;
 
             default:
-                printOutput("Invalid choice. Please enter 1, 2, or 3.");
+                printOutput("Invalid choice. Please enter 1, 2, 3, or 4.");
                 break;
         }
         return
     }
     
     // Devil Vendor Dialogue
-    if (currentRoom === rooms.marketeast && !dialogueStarted) {
+    if (currentRoom === rooms.marketeast && !dialogueStarted && !wonDevilCombat) {
         printOutput(rooms.marketeast.dialogue.default);
 
         // Add dialogue options for the player
         printOutput("1. Ask where he came from.");
-        printOutput("2. Ask what a Modron even is.");
+        printOutput('2. Ask what a "Modron" even is.');
         printOutput("3. Ask for directions.");
+        printOutput("4. Ignore him and leave")
     
         dialogueStarted = true;
         return
@@ -733,11 +762,11 @@ function handleSpeak(mainCommand) {
                 break;
 
             case "3":
-                printOutput("You ignore the devil - better things to do.");
+                printOutput('<strong>Do I look like a tout, outsider? There\'s very little gain to be made in guide work. Take your tourism to The Smoldering Corpse bar. There\'s bound to be a tout there."</strong> He extends his arm in the north-ward direction <strong>"Good luck finding one that\'s not a drunkerd or a cutpurse though..."</strong>');
                 break;
             
             case "4":
-                printOutput("     ")
+                printOutput("You ignore the devil - better things to do.")
                 break;
 
             default:
@@ -800,6 +829,7 @@ function startCombat() {
 function endCombat() {
     inCombat = false;
     combatLocked = false;
+    currentRoom.combatAvailable = false
 
     // Devil Attack Outcome
     if (currentRoom === rooms.marketeast) {
@@ -1099,6 +1129,7 @@ function processCommand(command) {
         case '1':
         case '2':
         case '3':
+        case '4':
             handleSpeak(mainCommand);
             break;
 
