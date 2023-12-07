@@ -137,7 +137,7 @@ start: {
 
     // Alleyway
     alleyway: {
-        description: "Alleyway: You are in an alleyway, finally, sunlight! It appears you're in a large city, the alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar. ",
+        description: "Alleyway: You are in an alleyway, It appears you're in a large city. The alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar. ",
         actions: {
             north: "start",
             south: "alleyend"
@@ -189,6 +189,7 @@ start: {
             east: "marketeast",
             west: "marketwest",
             south: "gatehouse",
+            north: "alleyend",
 
         },
     },
@@ -267,10 +268,21 @@ start: {
     marketeast: {
         description: "Market East: This is where the description goes",
         actions: {
-            west: "marketcenter"
+            west: "marketcenter",
+            north: "northeastalleyway",
         }
-    }
-  };
+    },
+
+
+    //North-East Alleyway
+    northeastalleyway: {
+        description: "North-East Alleyway: This is where the description goes",
+
+        actions: {
+            south: "marketeast",
+        }
+    },
+};
 
 
 
@@ -363,7 +375,7 @@ function takeItem(item) {
             }
         } 
     } else {
-        printOutput(`Your inventory is full. You cannot take the ${item}.`);
+        printOutput(`Your inventory is full. You cannot take the ${item}. Maybe you should leave some items behind`);
     }
 }
 
@@ -438,12 +450,12 @@ function displayRoom() {
             printOutput("<strong>...and you are totally lost</strong>");
             setTimeout(() => {
                 printOutput("<strong>Chapter 1: END</strong>");
-            }, 2000);
-        }, 2000);
+            }, 1000);
+        }, 1000);
     
         setTimeout(() => {
             printOutput("The street is lit by the neon glow of jarred will'o'wisps adorned to shotty stalls and patchworked tents. The market contiunes to your east and west. A tired ivory structure towers over you to the south.");
-        }, 5000);
+        }, 4000);
     }
 
     printOutput(`${boldText}`);
@@ -572,7 +584,7 @@ function handleDrop(itemToDrop) {
         }
     } else {
         // Request confirmation for item drop
-        printOutput(`Are you sure you want to drop the ${itemToDrop}? This item will be destroyed. Type 'drop [item name]' again to confirm.`);
+        printOutput(`Are you sure you want to discard the ${itemToDrop}? This item will be likely stop existing due to the nature of this place. Type 'discard [item name]' again to confirm.`);
         dropConfirmation = true;
     }
 }
@@ -770,7 +782,7 @@ function handleCombatAction() {
             // Display a message based on winning or losing
             if (playerHealth <= 0) {
                 printOutput("You have been defeated! Game Over.");
-            } else if (currentRoom = alleyend) {
+            } else if (currentRooms = rooms.alleyend) {
                 printOutput("Congratulations! You defeated the half-orc!");
                 wonOrcCombat = true;
                 displayRoom();
@@ -900,6 +912,8 @@ function processCommand(command) {
         case 'abandon':
         case 'dump':
         case 'release':
+        case 'discard':
+        case 'leave':
             handleDrop(commandArgs[1]);
             break;
 
