@@ -268,9 +268,9 @@ start: {
     marketeast: {
         description: () => {
             if (alreadyBeenMarketEast && !wonDevilCombat) {
-                return "Market East: You are on the east-side of the night market. There's a devil running a stand littered with otherwordly materials. You hear a rabbling of aggravated voices to your north. To the south delicious smells catch your senses"
+                return "Market East: You are on the east-side of the night market. There's a devil running a stand littered with otherwordly materials. You hear a rabbling of aggravated voices to your north. To the south delicious smells grab at your sense"
             } else if (alreadyBeenMarketEast && wonDevilCombat) {
-                return "Market East: You are on the east-side of the night market. Scorch marks are left on the cobblestone where the devil's shop once stood. You hear a rabbling of aggravated voices to your north. To the south delicious smells catch your senses"
+                return "Market East: You are on the east-side of the night market. Scorch marks are left on the cobblestone where the devil's shop once stood. You hear a rabbling of aggravated voices to your north. To the south delicious smells grab at your sense"
             } else {
                 return 'Market East: You are on the east-side of the night market. These vendor booths appear to unfold and construct themselves out of thin air. A devil running a stand littered with otherwordly materials, beckons you.'
             }
@@ -470,7 +470,7 @@ function displayRoom() {
     
         setTimeout(() => {
             printOutput("The street is lit by the neon glow of jarred will'o'wisps adorned to shotty stalls and patchworked tents. The market contiunes to your east and west. A tired ivory structure towers over you to the south.");
-        }, 4000);
+        }, 3000);
     }
 
     if (currentRoom === rooms.marketeast && !alreadyBeenMarketEast) {
@@ -512,7 +512,7 @@ function handleMovement(action) {
             displayRoom();
         }
     } else {
-        printOutput(`There is nothing to your ${action}. Try again.`);
+        printOutput(`There is nothing to your ${action}.`);
     }
 }
 
@@ -571,6 +571,7 @@ function handleObjectInteraction(action, object) {
                 if (object === 'hatch' && inventory.sword) {
                         printOutput(currentRoom.objects[object].breakWithSword());
                         doorBroken = true;
+                        increaseScore(10);
                             } else {
                                 printOutput(currentRoom.objects[object].break());
                             }
@@ -580,7 +581,7 @@ function handleObjectInteraction(action, object) {
                         break;
 
             default:
-                printOutput("I don\'t know that command for " + object + ". Try again.");
+                printOutput("I don\'t understand that command for " + object + ".");
         }
     } else if (action && !object) {
         printOutput(action + " what? There was no object in that command.");
@@ -804,6 +805,7 @@ function endCombat() {
     if (currentRoom === rooms.marketeast) {
         printOutput("Congratulations! You attacked a planer being with minimal consequences")
         wonDevilCombat = true;
+        increaseScore(10);
         displayRoom();
     }
 }
@@ -1150,7 +1152,7 @@ function processCommand(command) {
             break;
 
         default:
-            printOutput("I don\'t know that command. Try again.");
+            printOutput("I don\'t understand that command.");
     }
 }
 
