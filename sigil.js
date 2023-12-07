@@ -280,7 +280,7 @@ start: {
             if (alreadyBeenMarketEast && !wonDevilCombat) {
                 return "Market East: You are on the east-side of the night market. There's a devil running a stand littered with otherwordly materials. You hear a rabbling of aggravated voices to your north. To the south delicious smells grab at your sense"
             } else if (alreadyBeenMarketEast && wonDevilCombat) {
-                return "Market East: You are on the east-side of the night market. Scorch marks are left on the cobblestone where the devil's shop once stood. You hear a rabbling of aggravated voices to your north. To the south delicious smells grab at your sense"
+                return "Market East: You are on the east-side of the night market. Scorch marks are left on the cobblestone where the devil's shop once stood. It seems he left behind a cortex of a Modron in his hurry. You hear a rabbling of aggravated voices to your north. To the south delicious smells grab at your sense"
             } else {
                 return 'Market East: You are on the east-side of the night market. These vendor booths appear to unfold and construct themselves out of thin air. A devil running a stand littered with otherwordly materials, beckons you.'
             }
@@ -291,6 +291,12 @@ start: {
          objects: {
             "devil": {
                 description: "A red-tinted devil running a stand of various strange items. Though he gives off a strong presence, he doesn't seem like he'd put up a fight.",       
+            },
+            cortex: {
+                description: "A modron cortex.",
+                take: () => {
+                    takeItem('cortex');
+                },
             },
          },
         actions: {
@@ -414,8 +420,13 @@ function takeItem(item) {
                     description: "A strange crest bearing the markings of a cowl or helmet of some-kind.",
                 };
                 printOutput(`You take the ${item}.`);
-                // Additional code specific to winning the orc combat and taking the 'crest' item
-            } else {
+            } else if (wonDevilCombat && item === 'cortex') {
+                inventory[item] = {
+                    description: "A Modron cortex.",
+                };
+                printOutput(`You take the ${item}.`);
+            }
+            else {
                 printOutput(`Cannot take the ${item}.`);
             }
         } 
