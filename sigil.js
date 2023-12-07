@@ -267,8 +267,10 @@ start: {
     //Market East
     marketeast: {
         description: () => {
-            if (alreadyBeenMarketEast) {
+            if (alreadyBeenMarketEast && !wonDevilCombat) {
                 return "Market East: You are on the east-side of the night market. There's a devil running a stand littered with otherwordly materials. You hear a rabbling of aggravated voices to your north. To the south delicious smells catch your senses"
+            } else if (alreadyBeenMarketEast && wonDevilCombat) {
+                return "Market East: You are on the east-side of the night market. Scorch marks are left on the cobblestone where the devil's shop once stood. You hear a rabbling of aggravated voices to your north. To the south delicious smells catch your senses"
             } else {
                 return 'Market East: You are on the east-side of the night market. These vendor booths appear to unfold and construct themselves out of thin air. A devil running a stand littered with otherwordly materials, beckons you.'
             }
@@ -279,7 +281,8 @@ start: {
         actions: {
             west: "marketcenter",
             north: "northeastalleyway",
-        }
+        },
+        combatAvailable: true,
     },
 
 
@@ -711,7 +714,7 @@ function handleSpeak(mainCommand) {
         // Add dialogue options for the player
         printOutput("1. Ask where he came from.");
         printOutput("2. Ask what a Modron even is.");
-        printOutput("3. Ignore him and leave");
+        printOutput("3. Ask for directions.");
     
         dialogueStarted = true;
         return
@@ -730,6 +733,10 @@ function handleSpeak(mainCommand) {
 
             case "3":
                 printOutput("You ignore the devil - better things to do.");
+                break;
+            
+            case "4":
+                printOutput("     ")
                 break;
 
             default:
@@ -768,6 +775,7 @@ let playerHealth = 40;
 let enemyHealth = 20;
 let inCombat = false;
 let wonOrcCombat = false;
+let wonDevilCombat = false;
 let combatLocked = false;
 let playerOutcome;
 let enemyOutcome;
@@ -777,12 +785,27 @@ function startCombat() {
     printOutput("You are now in combat!");
     inCombat = true;
     combatLocked = true;
+   
+   // Devil Attack Outcome
+    if (currentRoom === rooms.marketeast) {
+        enemyHealth = 666
+        printOutput(`<strong>Player Health: ${playerHealth} | Enemy Health: ${enemyHealth}</strong>`);
+        printOutput("The devil desolves into a fiery display. His shop folds, shrinks then disappears before your eyes.")
+        endCombat();
+    }
 }
 
 // Function to end combat
 function endCombat() {
     inCombat = false;
     combatLocked = false;
+
+    // Devil Attack Outcome
+    if (currentRoom === rooms.marketeast) {
+        printOutput("Congratulations! You attacked a planer being with minimal consequences")
+        wonDevilCombat = true;
+        displayRoom();
+    }
 }
 
 // Function needed for the dice roll
