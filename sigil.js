@@ -82,7 +82,7 @@ const rooms = {
 start: {
     description: () => {
         if (inventory.lantern) {
-            return "Study: With your lantern illuminating the surroundings you can see this, once dark room, was working as someone's study. Many books are strewn about, in piles and scatter. There is a cellar hatch to the south.";
+            return "Study: With your lantern illuminating the surroundings you can see this, once dark room, was working as someone's study. Many books are strewn about, in piles and scattered. There is a cellar hatch to the south.";
         } else {
             return "Dark Room: You are in a dark room, with a dilapidated desk. There is a weathered note on it. Light partially peaks in from a north hallway.";
         }
@@ -266,7 +266,16 @@ start: {
     
     //Market East
     marketeast: {
-        description: "Market East: This is where the description goes",
+        description: () => {
+            if (alreadyBeenMarketEast) {
+                return "Market East: You are on the east-side of the night market. There's a devil running a stand littered with otherwordly materials. You hear a rabbling of aggravated voices to your north. To the south delicious smells catch your senses"
+            } else {
+                return 'Market East: You are on the east-side of the night market. These vendor booths appear to unfold and construct themselves out of thin air. A devil running a stand littered with otherwordly materials, beckons you.'
+            }
+         },
+         dialogue: {
+            default: '<strong>"You there! Berk, Did you just get here? Got any coins from...Where ever you came from? I got quality Modron cortices or would you care for some wyvern teeth?</strong>'
+         },
         actions: {
             west: "marketcenter",
             north: "northeastalleyway",
@@ -388,6 +397,7 @@ function giveFood() {
 
         delete inventory.food;
         foodGiven = true;
+        increaseScore(10);
 
     } else if (foodGiven) {
         printOutput("You already gave him food. The half-orc seems content.");
@@ -412,7 +422,9 @@ let doorBroken = false;
 let doneSecret = false;
 let dropConfirmation = false;
 let triedEating = false;
+let dialogueStarted = false;
 let alreadyBeenMarket = false;
+let alreadyBeenMarketEast = false;
 
 // Functions for the move and score counters
 function updateCounters() {
@@ -456,6 +468,10 @@ function displayRoom() {
         setTimeout(() => {
             printOutput("The street is lit by the neon glow of jarred will'o'wisps adorned to shotty stalls and patchworked tents. The market contiunes to your east and west. A tired ivory structure towers over you to the south.");
         }, 4000);
+    }
+
+    if (currentRoom === rooms.marketeast && !alreadyBeenMarketEast) {
+        alreadyBeenMarketEast = true
     }
 
     printOutput(`${boldText}`);
@@ -588,7 +604,6 @@ function handleDrop(itemToDrop) {
         dropConfirmation = true;
     }
 }
-
 // Function to handle the sneak action
 function handleSneak() {
     if (currentRoom.sneakAllowed && !currentRoom.sneakAttempted) {
@@ -616,15 +631,6 @@ function handleSneak() {
     }
 }
 
-// Function to handle the speak action
-function handleSpeak() {
-    if (currentRoom === rooms.alleyend) {
-        printOutput(rooms.alleyend.dialogue.default);
-        // Add any additional logic for speaking in the alleyend room here
-    } else {
-        printOutput("You speak to yourself.");
-    }
-}
 function handleEat(itemToEat) {
     if (inventory[itemToEat]) {
         if (itemToEat === 'food' && !triedEating) {
@@ -653,6 +659,89 @@ function handleEat(itemToEat) {
         printOutput(`You don't have ${itemToEat} in your inventory.`);
     }
 }
+
+// Function to handle the speak action
+function handleSpeak(mainCommand) {
+    
+    // Half-Orc Dialogue
+    if (currentRoom === rooms.alleyend && !dialogueStarted) {
+        printOutput(rooms.alleyend.dialogue.default);
+
+        // Add dialogue options for the player
+        printOutput("1. Offer him some food.");
+        printOutput("2. Threaten him.");
+        printOutput("3. Ignore him and leave.");
+
+        dialogueStarted = true;
+        return
+
+    } else if (currentRoom === rooms.alleyend && dialogueStarted) {
+        dialogueStarted = false;
+        // Handle player choices
+        switch (mainCommand) {
+            case "1":
+                if (inventory.food) {
+                    printOutput("You offer him some food.");
+                    rooms.alleyend.objects.food.give();
+                } else {
+                    printOutput("You don't have any food to give him");
+                }
+                break;
+
+            case "2":
+                printOutput("You threaten the half-orc. He eyes you warily.");
+                startCombat();
+                break;
+
+            case "3":
+                printOutput("You ignore the half-orc and leave.");
+                break;
+
+            default:
+                printOutput("Invalid choice. Please enter 1, 2, or 3.");
+                break;
+        }
+        return
+    }
+    
+    // Devil Vendor Dialogue
+    if (currentRoom === rooms.marketeast && !dialogueStarted) {
+        printOutput(rooms.marketeast.dialogue.default);
+
+        // Add dialogue options for the player
+        printOutput("1. Ask where he came from.");
+        printOutput("2. Ask what a Modron even is.");
+        printOutput("3. Ignore him and leave");
+    
+        dialogueStarted = true;
+        return
+
+    } else if (currentRoom === rooms.marketeast && dialogueStarted) {
+        dialogueStarted = false;
+        
+        // Handle player choices
+        switch (mainCommand) {
+            case "1":
+                printOutput('<strong>"The Nine Hells, of course. What, did you not see the horns?"</strong> He motions over his jagged appendages <strong>"Or do you mean my shop, \'cus that\'s, simply, an \'ol trick of the tade - pocket dimensions.</strong>');
+                break;
+            case "2":
+                printOutput('<strong>"You\'ve never seen a Modron? Little, nigh-immortal, mechanical fuckers. Supposed to uphold the principles of law and order. Next you\'re gonna tell me you don\'t have a portal key"</strong> he lets out a hearty laugh, then turns stern <strong>"Or worse you\'re gonna tell you don\'t have any coins"</strong>');
+                break;
+
+            case "3":
+                printOutput("You ignore the devil - better things to do.");
+                break;
+
+            default:
+                printOutput("Invalid choice. Please enter 1, 2, or 3.");
+                break;
+        }
+        return
+    } else {
+        printOutput("You speak to yourself.");
+    }
+}
+
 
 
 // Function for the "inventory" player action
@@ -800,7 +889,7 @@ function handleCombatAction() {
 //************************//
 
 // Function to process user inputs 
-// (often mainCommand is the players action and CommandArgs[1] is the object)
+// (often mainCommand is the players action and commandArgs[1] is the object)
 function processCommand(command) {
     if (playerHealth <= 0) {
         printOutput("You are dead. Game Over.");
@@ -969,6 +1058,7 @@ function processCommand(command) {
             handleSneak();
             break;
         
+        // To start the dialogue
         case 'speak':
         case 'talk':
         case 'ask':
@@ -978,7 +1068,13 @@ function processCommand(command) {
         case 'voice':
         case 'whisper':
         case 'shout':
-            handleSpeak();
+        case 'scream':
+        case 'yell':
+        // Player Options
+        case '1':
+        case '2':
+        case '3':
+            handleSpeak(mainCommand);
             break;
 
         case 'wait':
