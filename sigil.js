@@ -158,7 +158,6 @@ start: {
         },
         objects: {
             food: {
-                description: "Rotten food, who would eat this?",
                 give: () => {
                     giveFood();
                 },
@@ -166,10 +165,10 @@ start: {
         },
         actions: {
             north: "alleyway",
-            south: "marketplace",
+            south: "marketcenter",
         },
         dialogue: {
-            default: 'You catch the half-orcs attention. The half-orc speaks: <strong>Berk! Where\'d you come from? No matter, nothing no-matters-not in this nonsense. It\'s all chaos and i\'m hungry. You have snack or are you my food?</strong>',
+            default: 'You catch the half-orcs attention. The half-orc speaks: <strong>Berk! Where\'d you come from? No matter, nothing no-matters-not in this nonsense. It\'s all chaos and i\'m hungry, no coin for The Pit. You have snack or are you my food?</strong>',
         },
         sneakAllowed: true,
         sneakAttempted: false,
@@ -177,11 +176,20 @@ start: {
     },
 
 
-    // Marketplace
-    marketplace: {
-        description: "Marketplace: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture, smoke choked alleys, large centers. The city seems to wrap - above you, even.",
+    // Market Center
+    marketcenter: {
+        description: () => {
+            if (alreadyBeenMarket) {
+                return "Market Center: The street is lit by the neon glow of jarred will'o'wisps adorned to shotty stalls and patchworked tents. The market contiunes to your east and west. A tired ivory structure towers over you to the south."
+            } else {
+                return "Market Center: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture, smoke choked alleys, and larger mismatched structures. The city seems to wrap - above you, even."
+            }
+         },
         actions: {
-  
+            east: "marketeast",
+            west: "marketwest",
+            south: "gatehouse",
+
         },
     },
 
@@ -253,15 +261,17 @@ start: {
         west: "hallway",
       },
     },
-    // Marketcenter
-    marketcenter: {
-        description: "Market Center: This is the market center description",
-        actions: {
-  
-        },
-    },
     
+    
+    //Market East
+    marketeast: {
+        description: "Market East: This is where the description goes",
+        actions: {
+            west: "marketcenter"
+        }
+    }
   };
+
 
 
 //**************************//
@@ -286,7 +296,7 @@ rooms.start.actions.south = () => {
 // Alley End Combat
 rooms.alleyend.actions.south = () => {
     if (wonOrcCombat || foodGiven || sneakSuccessful) {
-        return "marketplace";
+        return "marketcenter";
     } else {
         if (!inCombat && !attemptedSouth) {
             // First time attempting to go south
@@ -300,6 +310,7 @@ rooms.alleyend.actions.south = () => {
         return null;
     }
 };
+
 
 
 //**************************//
@@ -389,6 +400,7 @@ let doorBroken = false;
 let doneSecret = false;
 let dropConfirmation = false;
 let triedEating = false;
+let alreadyBeenMarket = false;
 
 // Functions for the move and score counters
 function updateCounters() {
@@ -420,15 +432,19 @@ function displayRoom() {
     roomInfoElement.innerHTML = `<p>${boldText}</p>`;
 
     // Chapter 1 ending text
-    if (currentRoom === rooms.marketplace) {
-    setTimeout(() => {
-        printOutput("<strong>...and you are totally lost</strong>");
+    if (currentRoom === rooms.marketcenter && !alreadyBeenMarket) {
+        alreadyBeenMarket = true
         setTimeout(() => {
-            printOutput("<strong>Chapter 1: END</strong>");
+            printOutput("<strong>...and you are totally lost</strong>");
+            setTimeout(() => {
+                printOutput("<strong>Chapter 1: END</strong>");
+            }, 2000);
         }, 2000);
-    }, 2000);
-    // setTimeout(currentRoom = "marketcenter", displayRoom(), 3000)
-}
+    
+        setTimeout(() => {
+            printOutput("The street is lit by the neon glow of jarred will'o'wisps adorned to shotty stalls and patchworked tents. The market contiunes to your east and west. A tired ivory structure towers over you to the south.");
+        }, 5000);
+    }
 
     printOutput(`${boldText}`);
     printOutput(`${unboldedText}`);
@@ -614,6 +630,7 @@ function handleEat(itemToEat) {
             printOutput(`Against warning. You eat the rotten food. It tastes terrible`);
             playerHealth -= 5;
             printOutput(`<strong>Player Health: ${playerHealth}</strong>`);
+            delete inventory.food;
             triedEating = false;
             return;
         }
@@ -789,6 +806,11 @@ function processCommand(command) {
 
         case 'go':
         case 'move':
+        case 'walk':
+        case 'run':
+        case 'jog':
+        case 'stroll':
+        case 'skip':
             // CommandArgs[1] here is the direction
             const direction = commandArgs[1] ? commandArgs[1].toLowerCase() : '';
             handleMovement(direction);
