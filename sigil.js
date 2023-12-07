@@ -770,8 +770,8 @@ function handleCombatAction() {
             // Display a message based on winning or losing
             if (playerHealth <= 0) {
                 printOutput("You have been defeated! Game Over.");
-            } else {
-                printOutput("Congratulations! You defeated the foe!");
+            } else if (currentRoom = alleyend) {
+                printOutput("Congratulations! You defeated the half-orc!");
                 wonOrcCombat = true;
                 displayRoom();
             }
