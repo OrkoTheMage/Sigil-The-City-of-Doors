@@ -141,9 +141,9 @@ start: {
 alleyway: {
     description: () => { 
         if (wonOrcCombat || foodGiven) {
-            return "Alleyway: You are in an alleyway, It appears you're in a large city. The alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar.";
+            return "Alleyway: You are in the alley you came from originally which stretches further south. To the north is the cellar."
         } else {
-            return "Alleyway: You are in the alley you came from originally which stretches further south. To the north is the cellar.";
+            return "Alleyway: You are in an alleyway, It appears you're in a large city. The alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar."
         }
     },
     actions: {
