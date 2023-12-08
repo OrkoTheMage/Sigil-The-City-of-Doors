@@ -83,9 +83,11 @@ start: {
     description: () => {
         if (inventory.lantern) {
             return "Study: With your lantern illuminating the surroundings you can see this, once dark room, was working as someone's study. Many books are strewn about, in piles and scattered. There is a cellar hatch to the south.";
-        } else {
+        } else if (inventory.note) {
+            return "Dark Room: You are in a dark room, with a dilapidated desk. Light partially peaks in from a north hallway.";
+        } else
             return "Dark Room: You are in a dark room, with a dilapidated desk. There is a weathered note on it. Light partially peaks in from a north hallway.";
-        }
+
     },
     objects: {
         note: {
@@ -113,7 +115,7 @@ start: {
             },
         },
         sword: {
-            description: "A quality sword sword",
+            description: "A quality sword",
             take: () => {
                 takeItem('sword');
             },
@@ -135,14 +137,20 @@ start: {
 },
 
 
-    // Alleyway
-    alleyway: {
-        description: "Alleyway: You are in an alleyway, It appears you're in a large city. The alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar. ",
-        actions: {
-            north: "start",
-            south: "alleyend"
-        },
+// Alleyway
+alleyway: {
+    description: () => { 
+        if (wonOrcCombat || foodGiven) {
+            return "Alleyway: You are in an alleyway, It appears you're in a large city. The alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar.";
+        } else {
+            return "Alleyway: You are in the alley you came from originally which stretches further south. To the north is the cellar.";
+        }
     },
+    actions: {
+        north: "start",
+        south: "alleyend"
+    },
+},
 
 
     // Alley End
@@ -190,7 +198,7 @@ start: {
     marketcenter: {
         description: () => {
             if (alreadyBeenMarket) {
-                return "Market Center: The street is lit by the neon glow of jarred will'o'wisps adorned to shotty stalls and patchworked tents. The market contiunes to your east and west. A tired ivory structure towers over you to the south."
+                return "Market Center: The street is lit by the neon glow of jarred will'o'wisps adorned to shotty stalls and patchworked tents. The market continues to your east and west. A tired ivory structure towers over you to the south."
             } else {
                 return "Market Center: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture, smoke choked alleys, and larger mismatched structures. The city seems to wrap - above you, even."
             }
@@ -503,7 +511,7 @@ function displayRoom() {
         }, 1000);
     
         setTimeout(() => {
-            printOutput("The street is lit by the neon glow of jarred will'o'wisps adorned to shotty stalls and patchworked tents. The market contiunes to your east and west. A tired ivory structure towers over you to the south.");
+            printOutput("The street is lit by the neon glow of jarred will'o'wisps adorned to shoddy stalls and patchworked tents. The market continues to your east and west. A tired ivory structure towers over you to the south.");
         }, 3000);
     }
 
