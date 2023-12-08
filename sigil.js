@@ -12,6 +12,10 @@ document.addEventListener('DOMContentLoaded', function () {
 // Listener
 cliInput.addEventListener('keydown', handleInput);
 
+cliContent.onclick = function() {
+    cliInput.focus();
+    console.log("it clicked")
+};
 
 //**************************//
 //      CLI FUNCTIONS      //
@@ -371,12 +375,13 @@ function takeItem(item) {
     // Checks for inventory limit
     if (inventorySize < maxInventorySize) {
         
-        // Following only happens if item is not in inventory
+        // The following only happens if item is not in inventory
         // Descriptions are used later for an "if" in the object handler
         if (!inventory[item]) {
             if (item === 'sword') {
                 inventory[item] = {
                     description: "A quality sword.",
+                    damage: 10
                 };
                 printOutput(`Under some books you find a sword. Truly mightier.`);
                 increaseScore(10);
@@ -445,7 +450,7 @@ function sellItem(item) {
     const itemInfo = inventory[item];
 
     if (itemInfo) {
-        const sellPrice = calculateSellPrice(item); // You can implement your logic to determine the sell price
+        const sellPrice = calculateSellPrice(item);
 
         // Add the sell price to the player's GP
         GP += sellPrice;
@@ -459,10 +464,9 @@ function sellItem(item) {
     }
 }
 
-// Example function to calculate sell price (you can customize this)
+// Function to adjust the sell price (this goes into sellItem function)
 function calculateSellPrice(item) {
-    // You can implement your own logic for determining the sell price based on the item
-    // For simplicity, let's assume a fixed sell price for each item
+
     const sellPrices = {
         sword: 15,
         lantern: 10,
@@ -473,7 +477,7 @@ function calculateSellPrice(item) {
         cortex: 500,
     };
 
-    return sellPrices[item] || 0; // Default to 0 if the item is not in the sellPrices object
+    return sellPrices[item] || 0;
 }
 
 
@@ -848,6 +852,7 @@ function handleSpeak(mainCommand) {
 // Globals for combat
 let playerHealth = 40;
 let enemyHealth = 20;
+let enemyBaseDamage = 5;
 let inCombat = false;
 let wonOrcCombat = false;
 let wonDevilCombat = false;
@@ -878,7 +883,7 @@ function endCombat() {
 
     // Devil Attack Outcome
     if (currentRoom === rooms.marketeast) {
-        printOutput("Congratulations! You attacked a planer being with minimal consequences")
+        printOutput("<strong>Congratulations! You attacked a planer being with minimal consequences</strong>")
         wonDevilCombat = true;
         increaseScore(10);
         displayRoom();
@@ -898,7 +903,7 @@ function determineCombatOutcome() {
     // Determine player's outcome
     if (playerRoll >= 3) {
         if (playerRoll === 4) {
-            playerOutcome = { result: 'critical hit', message: 'You scored a critical hit!' };
+            playerOutcome = { result: 'critical hit', message: 'You scored a <strong>critical hit!</strong>' };
         } else {
             playerOutcome = { result: 'hit', message: 'You hit the enemy!' };
         }
@@ -909,7 +914,7 @@ function determineCombatOutcome() {
     // Determine enemy's outcome
     if (enemyRoll >= 3) {
         if (enemyRoll === 4) {
-            enemyOutcome = { result: 'critical hit', message: 'Your enemy landed a critical hit!' };
+            enemyOutcome = { result: 'critical hit', message: 'Your enemy landed a <strong>critical hit!</strong>' };
         } else {
             enemyOutcome = { result: 'hit', message: 'Your enemy landed a hit.' };
         }
@@ -918,21 +923,29 @@ function determineCombatOutcome() {
     }
 }
 
-function calculateDamage(outcome, hasSword) {
+// Function to turn the hits into damage
+function calculateDamage(outcome, item) {
     if (outcome.result === 'hit' || outcome.result === 'critical hit') {
         if (outcome.result === 'critical hit') {
-            return hasSword ? 20 : 10; // Critical hit with sword deals 20 damage, without sword deals 10
+            return item.damage * 2; // Critical hit deals double damage
         } else {
-            return hasSword ? 10 : 5; // Regular hit with sword deals 10 damage, without sword deals 5
+            return item.damage; // Regular hit deals normal damage
         }
     } else {
         return 0; // Miss or other outcomes result in 0 damage
     }
 }
 
+// Function to update health based on damage
 function updateHealth(playerOutcome, enemyOutcome) {
-    const playerDamage = calculateDamage(playerOutcome, inventory.sword);
-    const enemyDamage = calculateDamage(enemyOutcome, false);
+    
+    // Checks for the highest damage property in the players inventory
+    const playerItemWithHighestDamage = Object.values(inventory).reduce((maxItem, currentItem) => {
+        return currentItem.damage > (maxItem ? maxItem.damage : 0) ? currentItem : maxItem;
+    }, null);
+    
+    const playerDamage = calculateDamage(playerOutcome, playerItemWithHighestDamage || { damage: 5 });
+    const enemyDamage = calculateDamage(enemyOutcome, { damage: enemyBaseDamage });
 
     playerHealth -= enemyDamage;
     enemyHealth -= playerDamage;
@@ -940,15 +953,15 @@ function updateHealth(playerOutcome, enemyOutcome) {
     // Ensure health doesn't go below 0
     playerHealth = Math.max(playerHealth, 0);
     enemyHealth = Math.max(enemyHealth, 0);
-   
+
     // Print player and enemy health
-   printOutput(`<strong>Player Health: ${playerHealth} | Enemy Health: ${enemyHealth}</strong>`);
+    printOutput(`<strong>Player Health: ${playerHealth} | Enemy Health: ${enemyHealth}</strong>`);
 
     if (playerHealth <= 20) {
-        printOutput("You've become greatly wounded");
+        printOutput(getRandomString(playerWoundedMessages));
     }
     if (enemyHealth <= 5) {
-        printOutput("Your enemy has become greatly wounded");
+        printOutput(getRandomString(enemyWoundedMessages));
     }
 }
 
@@ -972,8 +985,9 @@ function handleCombatAction() {
             if (playerHealth <= 0) {
                 printOutput("You have been defeated! Game Over.");
             } else if (currentRooms = rooms.alleyend) {
-                printOutput("Congratulations! You defeated the half-orc!");
+                printOutput("<strong>Congratulations! You defeated the half-orc!</strong>");
                 wonOrcCombat = true;
+                endCombat();
                 displayRoom();
             }
         }
@@ -1150,11 +1164,13 @@ function processCommand(command) {
         case 'hurt':
         case 'stab':
         case 'strike':
-            if (currentRoom.combatAvailable) {
+        case 'slap':
+        case 'kick':
+        case 'punch':
+            if (currentRoom.combatAvailable && !inCombat) {
                 startCombat();
-            if (inCombat) {
+            } if (inCombat) {
                 handleCombatAction();
-                    }
             } else {
                 printOutput("You cannot attack right now.");
                 }
@@ -1236,11 +1252,47 @@ function processCommand(command) {
             doneSecret = true;
             }
             break;
-
+        
+            
         default:
             printOutput("I don\'t understand that command.");
     }
 }
+
+function getRandomString(strings) {
+    const randomIndex = Math.floor(Math.random() * strings.length);
+    return strings[randomIndex];
+}
+
+
+const playerWoundedMessages = [
+    "<strong>You've sustained an injury!</strong>",
+    "<strong>You've got a flesh wound</strong>",
+    "<strong>Your limbs are merely a suggestion of injury!</strong>",
+    "<strong>It's more than a scratch, but you press on!</strong>",
+    "<strong>Your resilience is tested; you've taken a hit!</strong>",
+    "<strong>A minor setback; you carry on undeterred!</strong>",
+    "<strong>You endure a blow, but your determination remains unwavering!</strong>",
+    "<strong>Adversity strikes, but you stand tall!</strong>",
+    "<strong>You've faced a challenge, but victory is still within reach!</strong>",
+    "<strong>In the heat of battle, you've weathered an assault!</strong>",
+    "<strong>Your tenacity is unbroken, despite the wounds!</strong>",
+    "<strong>Even wounded, you fight on with unwavering resolve!</strong>"
+];
+
+const enemyWoundedMessages = [
+    "<strong>Your enemy is severely wounded, but they fight on!</strong>",
+    "<strong>Your enemy has a flesh wound</strong>",
+    "<strong>Dire straits for your adversary; their strength wanes!</strong>",
+    "<strong>Your foe is in a critical condition, yet defiance persists!</strong>",
+    "<strong>The enemy's wounds are deep; their peril is evident!</strong>",
+    "<strong>Your adversary faces a grave threat; their resilience falters!</strong>",
+    "<strong>The enemy is on the brink of defeat; their desperation shows!</strong>",
+    "<strong>Your foe struggles to endure; victory is slipping away!</strong>",
+    "<strong>Your adversary is in desperate need of respite from the onslaught!</strong>",
+    "<strong>The enemy's wounds are severe, and their defenses crumble!</strong>",
+    "<strong>A critical blow to your opponent; their defeat is imminent!</strong>"
+];
 
 
 //**************************//

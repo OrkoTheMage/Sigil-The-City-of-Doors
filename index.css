@@ -63,10 +63,6 @@ body {
   font-family: 'Courier New', monospace;
 }
 
-#cli-input:focus {
-  outline: none;
-}
-
 
 /* Room Information, Moves Information, Score Information */
 #room-info,
