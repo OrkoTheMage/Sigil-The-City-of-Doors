@@ -33,7 +33,8 @@ function printOutput(message) {
     // Append the new message to the content div
     document.getElementById('cli-content').appendChild(outputContainer);
 
-    autoClear(6); // Adjust
+    // Scrolling to the bottom
+    cliContent.scrollTop = cliContent.scrollHeight;
 }
 
 // Function to manually clear the CLI
@@ -46,30 +47,9 @@ function clear() {
             !child.classList.contains('output')) {
             cliContent.removeChild(child);
         }
+        displayRoom();
     });
   }
-
-// Function to automatically clear the CLI
-function autoClear(limit) {
-    const children = Array.from(cliContent.children);
-
-    if (children.length > limit) {
-        // Keep the last 'limit' children
-        const childrenToKeep = children.slice(-limit);
-
-        // Remove all children except for the prompt and input
-        children.forEach((child) => {
-            if (
-                child !== cliPrompt &&
-                child !== cliInput &&
-                !child.classList.contains('output') &&
-                !childrenToKeep.includes(child)
-            ) {
-                cliContent.removeChild(child);
-            }
-        });
-    }
-}
 
 
 //**************************//
@@ -77,7 +57,7 @@ function autoClear(limit) {
 //************************//
 
 const rooms = {
-    
+        
 // Game Start / Dark Room / Study
 start: {
     description: () => {
@@ -87,7 +67,7 @@ start: {
             return "Dark Room: You are in a dark room, with a dilapidated desk. Light partially peaks in from a north hallway.";
         } else
             return "Dark Room: You are in a dark room, with a dilapidated desk. There is a weathered note on it. Light partially peaks in from a north hallway.";
-
+        
     },
     objects: {
         note: {
@@ -137,20 +117,20 @@ start: {
 },
 
 
-// Alleyway
-alleyway: {
-    description: () => { 
+    // Alleyway
+    alleyway: {
+        description: () => { 
         if (wonOrcCombat || foodGiven) {
             return "Alleyway: You are in the alley you came from originally which stretches further south. To the north is the cellar."
         } else {
             return "Alleyway: You are in an alleyway, It appears you're in a large city. The alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar."
         }
     },
-    actions: {
-        north: "start",
-        south: "alleyend"
+        actions: {
+            north: "start",
+            south: "alleyend"
+        },
     },
-},
 
 
     // Alley End
@@ -459,6 +439,44 @@ function giveFood() {
         printOutput("You don't have any food to give.");
     }
 }
+
+// Function to sell item
+function sellItem(item) {
+    const itemInfo = inventory[item];
+
+    if (itemInfo) {
+        const sellPrice = calculateSellPrice(item); // You can implement your logic to determine the sell price
+
+        // Add the sell price to the player's GP
+        GP += sellPrice;
+
+        // Remove the item from the inventory
+        delete inventory[item];
+
+        printOutput(`You sold the ${item} for ${sellPrice} GP.`);
+    } else {
+        printOutput(`You don't have the ${item} to sell.`);
+    }
+}
+
+// Example function to calculate sell price (you can customize this)
+function calculateSellPrice(item) {
+    // You can implement your own logic for determining the sell price based on the item
+    // For simplicity, let's assume a fixed sell price for each item
+    const sellPrices = {
+        sword: 15,
+        lantern: 10,
+        food: 1,
+        key: 2,
+        note: 1,
+        crest: 10,
+        cortex: 500,
+    };
+
+    return sellPrices[item] || 0; // Default to 0 if the item is not in the sellPrices object
+}
+
+
 //**************************//
 //      GAME LOGIC: 1      //
 //       GAME STATE       //
@@ -469,6 +487,7 @@ let currentRoom = rooms.start;
 let moves = 0;
 let playerScore = 0;
 const inventory = {};
+let GP = 0
 
 
 // Functions for the move and score counters
@@ -485,8 +504,8 @@ function increaseScore(points) {
 
 // Function to display current room description
 function displayRoom() {
-    
-    // Checks to see if descript is a function or regular.
+                                                    
+    // Checks to see if descript is a function or regular.   
     const description = typeof currentRoom.description === 'function'
         ? currentRoom.description() 
         : currentRoom.description;
@@ -523,6 +542,28 @@ function displayRoom() {
     printOutput(`${unboldedText}`);
 }
 
+// Function for the "inventory" player action
+function displayInventory() {
+    const inventoryItems = Object.keys(inventory);
+    if (inventoryItems.length > 0) {
+        printOutput("<strong>Inventory:</strong>");
+        inventoryItems.forEach(item => {
+            printOutput(`- ${item}`);
+        });
+    } else {
+        printOutput("Your inventory is empty.");
+    }
+}
+
+function displayGP() {
+    if (GP <= 0) {
+        printOutput("Your coinpurse is empty")
+        printOutput(`<strong>GP: ${GP}</strong>`)
+    } else {
+        printOutput("You look through your coinpurse to see an assortment of minted currency from elsewhere places.")
+        printOutput(`<strong>GP: ${GP}</strong>`)
+    }
+}
 
 //**************************//
 //      GAME LOGIC: 2      //
@@ -799,21 +840,6 @@ function handleSpeak(mainCommand) {
 }
 
 
-
-// Function for the "inventory" player action
-function displayInventory() {
-    const inventoryItems = Object.keys(inventory);
-    if (inventoryItems.length > 0) {
-        printOutput("<strong>Inventory:</strong>");
-        inventoryItems.forEach(item => {
-            printOutput(`- ${item}`);
-        });
-    } else {
-        printOutput("Your inventory is empty.");
-    }
-}
-
-
 //**************************//
 //       GAME LOGIC: 3      //
 //          COMBAT         //
@@ -1030,6 +1056,16 @@ function processCommand(command) {
         case 'i':
         case 'gear':
             displayInventory();
+            break;
+
+        case 'gp':
+        case 'goldpoints':
+        case 'gold':
+        case 'coins':
+        case 'coin':
+        case 'money':
+        case 'currency':
+            displayGP();
             break;
 
         // Take

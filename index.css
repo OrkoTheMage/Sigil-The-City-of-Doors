@@ -1,3 +1,4 @@
+/* General Styles */
 body {
   background-color: #000000;
   color: #ffffff;
@@ -9,32 +10,49 @@ body {
   font-family: 'Courier New', monospace;
 }
 
+
+/* Command Line Interface Container */
 #cli-container {
-  position: flex;
+  display: flex;
   flex-direction: column;
   border: 1px solid #ffffff;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   padding: 20px;
   z-index: 50;
-  overflow-y: auto;
+  overflow-y: hidden;
+  height: 70vh;
+  width: 100vh;
+  scroll-behavior: smooth;
+  margin: 10px;
 }
 
+
+/* CLI Content Area */
 #cli-content {
-  flex: 1; /* Takes up remaining vertical space */
-  overflow-y: auto; /* Enable vertical scrolling if needed */
-  margin-bottom: 10px; /* Adjust the margin as needed */
   overflow-y: auto;
-}
+  height: 100%;
+  flex-direction: column;
 
+  /* Hide scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+#cli-content::-webkit-scrollbar {
+  width: 6px;
+}
+#cli-content::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
 #cli-content > div {
   margin-bottom: 10px; /* Adjust the margin between messages */
 }
 
+
+/* CLI Input Field */
 #cli-prompt {
   color: #ffffff;
   margin-top: auto;
-  overflow-y: auto;
 }
 
 #cli-input {
@@ -43,14 +61,41 @@ body {
   color: #ffffff;
   background-color: #000000;
   font-family: 'Courier New', monospace;
-  margin-top: auto;
-  overflow-y: auto;
 }
 
 #cli-input:focus {
   outline: none;
 }
 
+
+/* Room Information, Moves Information, Score Information */
+#room-info,
+#moves-info,
+#score-info {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  font-size: 3vw;
+}
+
+#room-info {
+  left: 0;
+  background-color: #727171;
+  text-align: center;
+}
+
+#moves-info {
+  margin-left: 15%;
+  padding: 10px;
+}
+
+#score-info {
+  margin-left: 160%;
+  padding: 10px;
+}
+
+
+/* ASCII Art */
 #ascii-art {
   position: fixed;
   top: 30%;
@@ -58,9 +103,8 @@ body {
   right: 0;
   margin-bottom: 25%;
   font-size: 3vw;
-  animation: fadeOut 5s forwards; 
+  animation: fadeOut 5s forwards;
 }
-
 @keyframes fadeOut {
   from {
     opacity: 1;
@@ -68,32 +112,4 @@ body {
   to {
     opacity: 0;
   }
-}
-
-#room-info {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background-color: #727171;
-  text-align: center;
-  font-size: 3vw;
-}
-
-#moves-info {
-  position: fixed;
-  top: 0;
-  margin-left: 15%;
-  width: 100%;
-  padding: 10px;
-  font-size: 3vw;
-}
-
-#score-info {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  margin-left: 160%;
-  padding: 10px;
-  font-size: 3vw;
 }
