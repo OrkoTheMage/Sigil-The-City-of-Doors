@@ -21,10 +21,11 @@ body {
   padding: 20px;
   z-index: 50;
   overflow-y: hidden;
-  height: 60vh;
+  height: 70vh;
   width: 100vh;
   scroll-behavior: smooth;
   margin: 10px;
+  max-height: calc(100vh - 20px);
 }
 
 
@@ -72,6 +73,7 @@ body {
   top: 0;
   width: 100%;
   font-size: 3vw;
+  z-index: 100;
 }
 
 #room-info {
