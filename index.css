@@ -21,11 +21,12 @@ body {
   padding: 20px;
   z-index: 50;
   overflow-y: hidden;
-  height: 50vh;
+  height: 60vh;
   width: 100vh;
   scroll-behavior: smooth;
   margin: 10px;
   max-height: calc(100vh - 20px);
+  position: fixed;
 }
 
 
