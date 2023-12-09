@@ -996,6 +996,41 @@ function handleCombatAction() {
     }
 }
 
+function getRandomString(strings) {
+    const randomIndex = Math.floor(Math.random() * strings.length);
+    return strings[randomIndex];
+}
+
+
+const playerWoundedMessages = [
+    "<strong>You've sustained an injury!</strong>",
+    "<strong>You've got a flesh wound</strong>",
+    "<strong>Your limbs are merely a suggestion of injury!</strong>",
+    "<strong>It's more than a scratch, but you press on!</strong>",
+    "<strong>Your resilience is tested; you've taken a hit!</strong>",
+    "<strong>A minor setback; you carry on undeterred!</strong>",
+    "<strong>You endure a blow, but your determination remains unwavering!</strong>",
+    "<strong>Adversity strikes, but you stand tall!</strong>",
+    "<strong>You've faced a challenge, but victory is still within reach!</strong>",
+    "<strong>In the heat of battle, you've weathered an assault!</strong>",
+    "<strong>Your tenacity is unbroken, despite the wounds!</strong>",
+    "<strong>Even wounded, you fight on with unwavering resolve!</strong>"
+];
+
+const enemyWoundedMessages = [
+    "<strong>Your enemy is severely wounded, but they fight on!</strong>",
+    "<strong>Your enemy has a flesh wound</strong>",
+    "<strong>Dire straits for your adversary; their strength wanes!</strong>",
+    "<strong>Your foe is in a critical condition, yet defiance persists!</strong>",
+    "<strong>The enemy's wounds are deep; their peril is evident!</strong>",
+    "<strong>Your adversary faces a grave threat; their resilience falters!</strong>",
+    "<strong>The enemy is on the brink of defeat; their desperation shows!</strong>",
+    "<strong>Your foe struggles to endure; victory is slipping away!</strong>",
+    "<strong>Your adversary is in desperate need of respite from the onslaught!</strong>",
+    "<strong>The enemy's wounds are severe, and their defenses crumble!</strong>",
+    "<strong>A critical blow to your opponent; their defeat is imminent!</strong>"
+];
+
 
 //**************************//
 //      GAME LOGIC: 4      //
@@ -1013,6 +1048,8 @@ function processCommand(command) {
     printOutput(`>${command}`);
     const commandArgs = command.split(' ');
     const mainCommand = commandArgs[0].toLowerCase();
+    const lastWordIndex = commandArgs.length - 1;
+    const lastWord = commandArgs[lastWordIndex].toLowerCase();
     
     switch (mainCommand) {
         case 'clear':
@@ -1115,7 +1152,7 @@ function processCommand(command) {
         case 'smash':
         case 'wreck':
         case 'shatter':
-            handleObjectInteraction(mainCommand, commandArgs[1]);
+            handleObjectInteraction(mainCommand, lastWord);
             break;
 
         case 'drop':
@@ -1127,7 +1164,7 @@ function processCommand(command) {
         case 'release':
         case 'discard':
         case 'leave':
-            handleDrop(commandArgs[1]);
+            handleDrop(commandArgs[1], lastWord);
             break;
 
         case 'eat':
@@ -1137,7 +1174,7 @@ function processCommand(command) {
         case 'ingest':
         case 'dine':
         case 'chew':
-            handleEat(commandArgs[1]);
+            handleEat(commandArgs[1], lastWord);
             break;
             
         case 'give':
@@ -1252,47 +1289,11 @@ function processCommand(command) {
             doneSecret = true;
             }
             break;
-        
-            
+
         default:
             printOutput("I don\'t understand that command.");
     }
 }
-
-function getRandomString(strings) {
-    const randomIndex = Math.floor(Math.random() * strings.length);
-    return strings[randomIndex];
-}
-
-
-const playerWoundedMessages = [
-    "<strong>You've sustained an injury!</strong>",
-    "<strong>You've got a flesh wound</strong>",
-    "<strong>Your limbs are merely a suggestion of injury!</strong>",
-    "<strong>It's more than a scratch, but you press on!</strong>",
-    "<strong>Your resilience is tested; you've taken a hit!</strong>",
-    "<strong>A minor setback; you carry on undeterred!</strong>",
-    "<strong>You endure a blow, but your determination remains unwavering!</strong>",
-    "<strong>Adversity strikes, but you stand tall!</strong>",
-    "<strong>You've faced a challenge, but victory is still within reach!</strong>",
-    "<strong>In the heat of battle, you've weathered an assault!</strong>",
-    "<strong>Your tenacity is unbroken, despite the wounds!</strong>",
-    "<strong>Even wounded, you fight on with unwavering resolve!</strong>"
-];
-
-const enemyWoundedMessages = [
-    "<strong>Your enemy is severely wounded, but they fight on!</strong>",
-    "<strong>Your enemy has a flesh wound</strong>",
-    "<strong>Dire straits for your adversary; their strength wanes!</strong>",
-    "<strong>Your foe is in a critical condition, yet defiance persists!</strong>",
-    "<strong>The enemy's wounds are deep; their peril is evident!</strong>",
-    "<strong>Your adversary faces a grave threat; their resilience falters!</strong>",
-    "<strong>The enemy is on the brink of defeat; their desperation shows!</strong>",
-    "<strong>Your foe struggles to endure; victory is slipping away!</strong>",
-    "<strong>Your adversary is in desperate need of respite from the onslaught!</strong>",
-    "<strong>The enemy's wounds are severe, and their defenses crumble!</strong>",
-    "<strong>A critical blow to your opponent; their defeat is imminent!</strong>"
-];
 
 
 //**************************//
