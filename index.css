@@ -108,14 +108,13 @@ body {
 /* ASCII Art */
 #ascii-art {
   position: fixed;
-  top: 30%;
-  left: 14%;
-  right: 0;
-  margin-bottom: 25%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center; /* Center text horizontally within the pre block */
   font-size: 3vw;
-  animation: fadeOut 5s forwards, glow 2s infinite alternate; /* Added glow animation */
+  animation: fadeOut 5s forwards, glow 2s infinite alternate;
 }
-
 @keyframes fadeOut {
   from {
     opacity: 1;
