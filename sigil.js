@@ -350,6 +350,30 @@ start: {
                 },
             },
          },
+         battle: (lastword) => {
+            if (!wonDevilCombat && !inCombat) {
+
+            switch(lastword) {
+                case "devil":
+                case "vendor":
+                case "merchant":
+                    startCombat();
+                    enemyBaseDamage = 0
+                    enemyHealth = 666
+                    printOutput(`<strong>Player Health: ${playerHealth} | Enemy Health: ${enemyHealth}</strong>`);
+                    printOutput("The devil desolves into a fiery display. His shop folds, shrinks then disappears before your eyes.")
+                    
+                    enemyHealth = 0
+                    if (enemyHealth <= 0) {
+                        endCombat();
+                        printOutput("<strong>Congratulations! You attacked a planer being with minimal consequences</strong>")
+                        wonDevilCombat = true;
+                        increaseScore(10);
+                        displayRoom();
+                    }
+             }
+        }
+    },
          dialogue: {
             default: () => {
                 if (wonDevilCombat) {
@@ -894,13 +918,6 @@ function startCombat() {
     printOutput("You are now in combat!");
     inCombat = true;
     combatLocked = true;
-   
-   // Devil Attack Outcome
-    if (currentRoom === rooms.marketeast) {
-        printOutput(`<strong>Player Health: ${playerHealth} | Enemy Health: ${enemyHealth}</strong>`);
-        printOutput("The devil desolves into a fiery display. His shop folds, shrinks then disappears before your eyes.")
-        endCombat();
-    }
 }
 
 // Function to end combat
@@ -908,14 +925,6 @@ function endCombat() {
     inCombat = false;
     combatLocked = false;
     currentRoom.combatAvailable = false
-
-    // Devil Attack Outcome
-    if (currentRoom === rooms.marketeast) {
-        printOutput("<strong>Congratulations! You attacked a planer being with minimal consequences</strong>")
-        wonDevilCombat = true;
-        increaseScore(10);
-        displayRoom();
-    }
 }
 
 // Function needed for the dice roll
@@ -995,8 +1004,9 @@ function updateHealth(playerOutcome, enemyOutcome) {
 
 // Function to handle combat actions 
 function handleCombatAction(lastword) {
-    currentRoom.battle(lastword)
     
+  currentRoom.battle(lastword)
+
     if (inCombat) {
         determineCombatOutcome();
 
@@ -1010,13 +1020,11 @@ function handleCombatAction(lastword) {
         // Check if combat should end (e.g., player or foe health reaches 0)
         if (playerHealth <= 0) {
             endCombat();
-            printOutput("You have been defeated! Game Over.");
+            printOutput("You have been defeated! <strong>Game Over.</strong>");
         } else if (enemyHealth <=0) {
             currentRoom.battle(lastword)
         }
-        
-    } else {
-        printOutput("You are not in combat. Who are you attacking?");
+
     }
 }
 
@@ -1065,7 +1073,7 @@ const enemyWoundedMessages = [
 // (often mainCommand is the players action and commandArgs[1] is the object)
 function processCommand(command) {
     if (playerHealth <= 0) {
-        printOutput("You are dead. Game Over.");
+        printOutput("You are dead. <stong>Game Over.</strong");
         return;
     }
 
