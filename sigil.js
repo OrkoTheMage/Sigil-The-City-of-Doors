@@ -153,7 +153,6 @@ start: {
                 give: () => {
                     giveFood();
                 },
-
             },
             crest: {
                 description: "A strange crest bearing the markings of a cowl or helmet of some-kind.",
@@ -170,7 +169,32 @@ start: {
             south: "marketcenter",
         },
         dialogue: {
-            default: 'You catch the half-orcs attention. The half-orc speaks: <strong>Berk! Where\'d you come from? No matter, nothing no-matters-not in this nonsense. It\'s all chaos and i\'m hungry, no coin for The Pit. You have snack or are you my food?</strong>',
+            default: () => {
+                if (wonOrcCombat) {
+                return null
+            } else
+                showResponses = true
+                return 'You catch the half-orcs attention. The half-orc speaks: <strong>Berk! Where\'d you come from? No matter, nothing no-matters-not in this nonsense. It\'s all chaos and i\'m hungry, no coin for The Pit. You have snack or are you my food?</strong>' 
+            },
+
+            response1: "1. Offer him some food.",
+            response2: "2. Threaten him.",
+            response3:'3. Ask him what "The Pits" are',
+            response4: "4. Ignore him and leave",
+            
+            outcome1: () => { 
+                if (inventory.food) {
+                    rooms.alleyend.objects.food.give();
+                    return "You offer him some food."
+                } else 
+                    return "You have no food to give"
+            },
+            outcome2: () => {
+               startCombat();
+                return  "You threaten the half-orc. He eyes you warily."
+            },
+            outcome3: () => { return '<strong> "The Grease Pits. Only-be the best eats this side of the..."</strong> He pauses, lost in thought, and grestures to form a circle. <strong>"Wait...do circles have sides?</strong>' },
+            outcome4: () => { return "You ignore the half-orc and leave." },
         },
         sneakAllowed: true,
         sneakAttempted: false,
@@ -277,9 +301,6 @@ start: {
                 return 'Market East: You are on the east-side of the night market. These vendor booths appear to unfold and construct themselves out of thin air. A devil running a stand littered with otherwordly materials, beckons you.'
             }
          },
-         dialogue: {
-            default: '<strong>"You there! Berk, Did you just get here? Got any coins from...Where ever you came from? I got quality Modron cortices or would you care for some wyvern teeth?</strong>'
-         },
          objects: {
             "devil": {
                 description: "A red-tinted devil running a stand of various strange items. Though he gives off a strong presence, he doesn't seem like he'd put up a fight.",       
@@ -291,6 +312,25 @@ start: {
                 },
             },
          },
+         dialogue: {
+            default: () => {
+                if (wonDevilCombat) {
+                return null
+            } else
+                showResponses = true
+                return '<strong>"You there! Berk, Did you just get here? Got any coins from...Where ever you came from? I got quality Modron cortices or would you care for some wyvern teeth?</strong>'
+            },
+
+            response1: "1. Ask where he came from.",
+            response2: '2. Ask what a "Modron" even is.',
+            response3: "3. Ask for directions.",
+            response4: "4. Ignore him and leave",
+            
+            outcome1: () => { return '<strong>"The Nine Hells, of course. What, did you not see the horns?"</strong> He motions over his jagged appendages <strong>"Or do you mean my shop, \'cus that\'s, simply, an \'ol trick of the tade - pocket dimensions.</strong>' },
+            outcome2: () => { return '<strong>"You\'ve never seen a Modron? Little, nigh-immortal, mechanical fuckers. Supposed to uphold the principles of law and order. Next you\'re gonna tell me you don\'t have a portal key"</strong> he lets out a hearty laugh, then turns stern <strong>"Or worse you\'re gonna tell you don\'t have any coins"</strong>'},
+            outcome3: () => { return '<strong>Do I look like a tout, outsider? There\'s very little gain to be made in guide work. Take your tourism to The Smoldering Corpse bar. There\'s bound to be a tout there."</strong> He extends his arm in the north-ward direction <strong>"Good luck finding one that\'s not a drunkerd or a cutpurse though..."</strong>'},
+            outcome4: () => { return "You ignore the devil - better things to do."},
+        },
         actions: {
             west: "marketcenter",
             north: "northeastalleyway",
@@ -323,7 +363,7 @@ let doorBroken = false;
 let doneSecret = false;
 let dropConfirmation = false;
 let triedEating = false;
-let dialogueStarted = false;
+let showResponses = false;
 let alreadyBeenMarket = false;
 let alreadyBeenMarketEast = false;
 
@@ -680,7 +720,6 @@ function handleObjectInteraction(action, object) {
 function handleDrop(itemToDrop) {
     if (dropConfirmation) {
         // Confirmation is already requested, drop the item
-        dropConfirmation = false;
 
         if (inventory[itemToDrop]) {
             printOutput(`You drop the ${itemToDrop}.`);
@@ -751,97 +790,49 @@ function handleEat(itemToEat) {
     }
 }
 
+
 // Function to handle the speak action
-function handleSpeak(mainCommand) {
-    
-    // Half-Orc Dialogue
-    if (currentRoom === rooms.alleyend && !dialogueStarted && !wonOrcCombat) {
-        printOutput(rooms.alleyend.dialogue.default);
+function handleSpeak() {
+    if (currentRoom.dialogue) {
+        printOutput(currentRoom.dialogue.default());
 
-        // Add dialogue options for the player
-        printOutput("1. Offer him some food.");
-        printOutput("2. Threaten him.");
-        printOutput('3. Ask him what "The Pits" are');
-        printOutput("4. Ignore him and leave.");
-
-        dialogueStarted = true;
-        return
-
-    } else if (currentRoom === rooms.alleyend && dialogueStarted) {
-        dialogueStarted = false;
-        // Handle player choices
-        switch (mainCommand) {
-            case "1":
-                if (inventory.food) {
-                    printOutput("You offer him some food.");
-                    rooms.alleyend.objects.food.give();
-                } else {
-                    printOutput("You don't have any food to give him");
-                }
-                break;
-
-            case "2":
-                printOutput("You threaten the half-orc. He eyes you warily.");
-                startCombat();
-                break;
-
-            case "3":
-                printOutput('<strong> "The Grease Pits. Only-be the best eats this side of the..."</strong> He pauses, lost in thought, and grestures to form a circle. <strong>"Wait...do circles have sides?</strong>');
-                break;
-
-            case "4":
-                printOutput("You ignore the half-orc and leave.");
-                break;
-
-            default:
-                printOutput("Invalid choice. Please enter 1, 2, 3, or 4.");
-                break;
+        if (showResponses) {
+            printOutput(currentRoom.dialogue.response1);
+            printOutput(currentRoom.dialogue.response2);
+            printOutput(currentRoom.dialogue.response3);
+            printOutput(currentRoom.dialogue.response4);
+        } else {
+            printOutput("You talk to yourself");
         }
-        return
-    }
-    
-    // Devil Vendor Dialogue
-    if (currentRoom === rooms.marketeast && !dialogueStarted && !wonDevilCombat) {
-        printOutput(rooms.marketeast.dialogue.default);
-
-        // Add dialogue options for the player
-        printOutput("1. Ask where he came from.");
-        printOutput('2. Ask what a "Modron" even is.');
-        printOutput("3. Ask for directions.");
-        printOutput("4. Ignore him and leave")
-    
-        dialogueStarted = true;
-        return
-
-    } else if (currentRoom === rooms.marketeast && dialogueStarted) {
-        dialogueStarted = false;
-        
-        // Handle player choices
-        switch (mainCommand) {
-            case "1":
-                printOutput('<strong>"The Nine Hells, of course. What, did you not see the horns?"</strong> He motions over his jagged appendages <strong>"Or do you mean my shop, \'cus that\'s, simply, an \'ol trick of the tade - pocket dimensions.</strong>');
-                break;
-            case "2":
-                printOutput('<strong>"You\'ve never seen a Modron? Little, nigh-immortal, mechanical fuckers. Supposed to uphold the principles of law and order. Next you\'re gonna tell me you don\'t have a portal key"</strong> he lets out a hearty laugh, then turns stern <strong>"Or worse you\'re gonna tell you don\'t have any coins"</strong>');
-                break;
-
-            case "3":
-                printOutput('<strong>Do I look like a tout, outsider? There\'s very little gain to be made in guide work. Take your tourism to The Smoldering Corpse bar. There\'s bound to be a tout there."</strong> He extends his arm in the north-ward direction <strong>"Good luck finding one that\'s not a drunkerd or a cutpurse though..."</strong>');
-                break;
-            
-            case "4":
-                printOutput("You ignore the devil - better things to do.")
-                break;
-
-            default:
-                printOutput("Invalid choice. Please enter 1, 2, or 3.");
-                break;
-        }
-        return
     } else {
-        printOutput("You speak to yourself.");
+        printOutput("You talk to yourself");
     }
 }
+
+// Function to handle "1-4" after speaking
+function outcomeResponse(mainCommand) {
+    if (currentRoom.dialogue) {
+        switch (mainCommand) {
+            case "1":
+                printOutput(currentRoom.dialogue.outcome1());
+                break;
+            case "2":
+                printOutput(currentRoom.dialogue.outcome2());
+                break;
+            case "3":
+                printOutput(currentRoom.dialogue.outcome3());
+                break;
+            case "4":
+                printOutput(currentRoom.dialogue.outcome4());
+                break;
+            default:
+                printOutput("I don't understand that command in this situation.");
+        }
+    } else {
+        printOutput("I don't understand that command in this situation.");
+    }
+}
+
 
 
 //**************************//
@@ -1064,7 +1055,7 @@ function processCommand(command) {
         case 'stroll':
         case 'skip':
             // CommandArgs[1] here is the direction
-            const direction = commandArgs[1] ? commandArgs[1].toLowerCase() : '';
+            const direction = lastWord ? lastWord.toLowerCase() : '';
             handleMovement(direction);
             break;
 
@@ -1104,7 +1095,6 @@ function processCommand(command) {
         case 'inventory':
         case 'bag':
         case 'inv':
-        case 'i':
         case 'gear':
             displayInventory();
             break;
@@ -1164,7 +1154,7 @@ function processCommand(command) {
         case 'release':
         case 'discard':
         case 'leave':
-            handleDrop(commandArgs[1], lastWord);
+            handleDrop(lastWord);
             break;
 
         case 'eat':
@@ -1174,7 +1164,7 @@ function processCommand(command) {
         case 'ingest':
         case 'dine':
         case 'chew':
-            handleEat(commandArgs[1], lastWord);
+            handleEat(lastWord);
             break;
             
         case 'give':
@@ -1183,7 +1173,7 @@ function processCommand(command) {
         case 'donate':
         case 'provide':
         case 'deliver':
-            const objectToGive = commandArgs[1];
+            const objectToGive = lastWord;
             if (currentRoom.objects && currentRoom.objects[objectToGive] && currentRoom.objects[objectToGive].give) {
             currentRoom.objects[objectToGive].give();
             } else {
@@ -1233,14 +1223,17 @@ function processCommand(command) {
         case 'shout':
         case 'scream':
         case 'yell':
+            handleSpeak(mainCommand);
+            break;
         // Player Options
         case '1':
         case '2':
         case '3':
         case '4':
-            handleSpeak(mainCommand);
+            outcomeResponse(mainCommand);
             break;
 
+        
         case 'wait':
         case 'sleep':
         case 'rest':
