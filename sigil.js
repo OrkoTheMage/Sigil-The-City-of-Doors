@@ -161,12 +161,31 @@ start: {
                 },
             },
             "half-orc": {
-                description: "A large half-orc, clad in dark-iron armor with some-kind of crest on it. He looks confused, or hungry",       
+                description: "A large half-orc, clad in dark-iron armor with some-kind of crest on it. He looks confused, or hungry",
             },
         },
         actions: {
             north: "alleyway",
             south: "marketcenter",
+        },
+        battle: (lastword) => {
+                if (!wonOrcCombat && !inCombat) {
+
+                switch(lastword) {
+                    case "half-orc":
+                    case "halforc":
+                    case "orc":
+                        startCombat();
+                        enemyBaseDamage = 5
+                        enemyHealth = 20
+                 }
+            }
+                if (enemyHealth <= 0) {
+                    endCombat();
+                    printOutput("<strong>Congratulations! You defeated the half-orc!</strong>");
+                    wonOrcCombat = true;
+                    displayRoom();
+                }
         },
         dialogue: {
             default: () => {
@@ -198,7 +217,6 @@ start: {
         },
         sneakAllowed: true,
         sneakAttempted: false,
-        combatAvailable: true,
     },
 
 
@@ -206,11 +224,29 @@ start: {
     marketcenter: {
         description: () => {
             if (alreadyBeenMarket) {
-                return "Market Center: The street is lit by the neon glow of jarred will'o'wisps adorned to shotty stalls and patchworked tents. The market continues to your east and west. A tired ivory structure towers over you to the south."
+                return "Market Center: You are in a dense, chimeric crowd. A young man clutches his coinpurse. It appears he's been pickpocketed - best not hang around. The market continues to your east and west. A tired ivory structure towers over you to the south."
             } else {
                 return "Market Center: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture, smoke choked alleys, and larger mismatched structures. The city seems to wrap - above you, even."
             }
-         },
+         },dialogue: {
+            default: () => {
+                if (false) { //add logic
+                return null
+            } else
+                showResponses = true
+                return 'You approch a young man. His eyes surveil the crowded streets, he turns to you. <strong>"What do you want? Can\'t you see I\'ve lost everything!"</strong>'
+            },
+
+            response1: "1. Offer him help",
+            response2: '2. ',
+            response3: "3. ",
+            response4: "4. Ignore him and leave",
+            
+            outcome1: () => { return ' ' },
+            outcome2: () => { return ' '},
+            outcome3: () => { return ' '},
+            outcome4: () => { return " " },
+        },
         actions: {
             east: "marketeast",
             west: "marketwest",
@@ -303,7 +339,9 @@ start: {
          },
          objects: {
             "devil": {
-                description: "A red-tinted devil running a stand of various strange items. Though he gives off a strong presence, he doesn't seem like he'd put up a fight.",       
+                description: "A red-tinted devil running a stand of various strange items. Though he gives off a strong presence, he doesn't seem like he'd put up a fight.",
+                enemyBaseDamage: 0,
+                enemyHealth: 666,
             },
             cortex: {
                 description: "A modron cortex.",
@@ -859,7 +897,6 @@ function startCombat() {
    
    // Devil Attack Outcome
     if (currentRoom === rooms.marketeast) {
-        enemyHealth = 666
         printOutput(`<strong>Player Health: ${playerHealth} | Enemy Health: ${enemyHealth}</strong>`);
         printOutput("The devil desolves into a fiery display. His shop folds, shrinks then disappears before your eyes.")
         endCombat();
@@ -957,7 +994,9 @@ function updateHealth(playerOutcome, enemyOutcome) {
 }
 
 // Function to handle combat actions 
-function handleCombatAction() {
+function handleCombatAction(lastword) {
+    currentRoom.battle(lastword)
+    
     if (inCombat) {
         determineCombatOutcome();
 
@@ -969,21 +1008,15 @@ function handleCombatAction() {
         printOutput(`${enemyOutcome.message}`);
 
         // Check if combat should end (e.g., player or foe health reaches 0)
-        if (playerHealth <= 0 || enemyHealth <= 0) {
+        if (playerHealth <= 0) {
             endCombat();
-
-            // Display a message based on winning or losing
-            if (playerHealth <= 0) {
-                printOutput("You have been defeated! Game Over.");
-            } else if (currentRooms = rooms.alleyend) {
-                printOutput("<strong>Congratulations! You defeated the half-orc!</strong>");
-                wonOrcCombat = true;
-                endCombat();
-                displayRoom();
-            }
+            printOutput("You have been defeated! Game Over.");
+        } else if (enemyHealth <=0) {
+            currentRoom.battle(lastword)
         }
+        
     } else {
-        printOutput("You are not in combat.");
+        printOutput("You are not in combat. Who are you attacking?");
     }
 }
 
@@ -1194,14 +1227,8 @@ function processCommand(command) {
         case 'slap':
         case 'kick':
         case 'punch':
-            if (currentRoom.combatAvailable && !inCombat) {
-                startCombat();
-            } if (inCombat) {
-                handleCombatAction();
-            } else {
-                printOutput("You cannot attack right now.");
-                }
-                break;
+            handleCombatAction(lastWord);
+            break;
 
         case 'sneak':
         case 'hide':
