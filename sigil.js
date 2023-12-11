@@ -447,13 +447,37 @@ start: {
     },
 
 
-    //North-East Alleyway
-    northeastalleyway: {
-        description: "North-East Alleyway: This is where the description goes",
+    marketwest: {
+        description: "Market West: Descript Here",
+         objects: { 
+            axe: {
+                description: "Its an axe.",
+                buy: () => {
+                    buyItem('axe')
+            },
 
+         },
+        },
+         dialogue: {
+            default: () => { 
+                showResponses = true
+                return '<strong>Buy or sell?</strong>'
+            },
+
+            response1: "1. Buy Items",
+            response2: '2. Sell Items',
+            response3: "3. ",
+            response4: "4. ",
+            
+            outcome1: () => {return 'I have an axe';},
+            outcome2: () => { return '<strong>"You\'ve never seen a Modron? Little, nigh-immortal, mechanical fuckers. Supposed to uphold the principles of law and order. Next you\'re gonna tell me you don\'t have a portal key"</strong> he lets out a hearty laugh, then turns stern <strong>"Or worse you\'re gonna tell you don\'t have any coins"</strong>'},
+            outcome3: () => { return '<strong>Do I look like a tout, outsider? There\'s very little gain to be made in guide work. Take your tourism to The Smoldering Corpse bar. There\'s bound to be a tout there."</strong> He extends his arm in the north-ward direction <strong>"Good luck finding one that\'s not a drunkerd or a cutpurse though..."</strong>'},
+            outcome4: () => { return "You ignore the devil - better things to do."},
+        },
         actions: {
-            south: "marketeast",
-        }
+            east: "marketcenter",
+            north: "northeastalleyway",
+        },
     },
 };
 
@@ -645,6 +669,14 @@ function calculateSellPrice(item) {
     return sellPrices[item] || 0;
 }
 
+function calculateBuyCost(item) {
+    const buyPrices = {
+        axe: 100,
+    };
+
+    return buyPrices[item] || 0;
+}
+
 
 //**************************//
 //      GAME LOGIC: 1      //
@@ -656,7 +688,7 @@ let currentRoom = rooms.start;
 let moves = 0;
 let playerScore = 0;
 const inventory = {};
-let GP = 0
+let GP = 100
 
 
 // Functions for the move and score counters
@@ -1335,6 +1367,9 @@ function processCommand(command) {
             outcomeResponse(mainCommand);
             break;
 
+        case 'buy':
+            buyItem(lastWord)
+            break
         
         case 'wait':
         case 'sleep':
