@@ -51,7 +51,7 @@ function getTextWidth(text) {
 
 function updateCaret() {
     const inputRect = cliInput.getBoundingClientRect();
-    const textBeforeCaret = cliInput.value.substring(0, Math.min(cliInput.selectionStart, 48)); 
+    const textBeforeCaret = cliInput.value.substring(0, Math.min(cliInput.selectionStart, 40)); 
     const textWidth = getTextWidth(textBeforeCaret);
 
     customCaret.style.left = `${inputRect.left + window.scrollX + textWidth}px`;

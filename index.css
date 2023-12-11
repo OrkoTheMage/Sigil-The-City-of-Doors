@@ -62,6 +62,15 @@ body {
     0 0 30px rgba(255, 255, 255, 0.2); /* Apply glow effect */
 }
 
+/* Custom Caret */
+.custom-caret {
+  position: absolute;
+  height: 1.5%;
+  width: 4px;
+  background-color: #ffffff;
+  animation: blink 1s infinite;
+}
+
 /* CLI Input */
 #cli-input {
   border: none;
@@ -71,20 +80,6 @@ body {
   background-color: transparent;
   caret-color: transparent;
   width: 380px;
-}
-
-/* Custom Caret */
-.custom-caret {
-  position: absolute;
-  height: 1.5%;
-  width: 4px;
-  background-color: #ffffff;
-  animation: blink 1s infinite;
-}
-@keyframes blink {
-  50% {
-    opacity: 0;
-  }
 }
 
 /* Room, Moves, and Score Information */
@@ -103,21 +98,23 @@ body {
 
 /* Room Info */
 #room-info {
-  font-size: 5vw;
+  font-size: 400%;
   background-color: transparent;
   text-align: center;
 }
 
 /* Moves Info */
 #moves-info {
-  font-size: 4vw;
+  font-size: 300%;
   text-align: left;
+  padding-left: 10vw;
 }
 
 /* Score Info */
 #score-info {
-  font-size: 4vw;
+  font-size: 300%;
   text-align: right;
+  padding-right: 10vw;
 }
 
 /* ASCII Art */
@@ -183,16 +180,6 @@ body {
   100% { opacity: 0.37221; }
 }
 
-/* Fade Out Keyframes */
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
 /* Glow Keyframes */
 @keyframes glow {
   from {
@@ -206,5 +193,37 @@ body {
       0 0 15px rgba(255, 255, 255, 0.7),
       0 0 25px rgba(255, 255, 255, 0.5),
       0 0 35px rgba(255, 255, 255, 0.4);
+  }
+}
+/* Fade Out Keyframes (For ASCII Art) */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Glow Keyframes (For Custom Caret) */
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Media Query for smaller screens */
+@media only screen and (max-width: 768px) {
+  /* Info Resizing */
+  #room-info {
+    font-size: 5vw; 
+  }
+  #moves-info,
+  #score-info {
+    font-size: 4vw; 
+  }
+/* CLI Textbox Resizing */
+  #cli-input {
+  width: 300px;
   }
 }
