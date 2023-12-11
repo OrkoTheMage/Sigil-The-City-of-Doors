@@ -2,32 +2,65 @@
 //  LISTNERS AND CLI HTML  //
 //************************//
 
-// DOMS
+// DOM
 document.addEventListener('DOMContentLoaded', function () {
-    const cliContainer = document.getElementById('cli-container');
-    const cliPrompt = document.getElementById('cli-prompt');
-    const cliInput = document.getElementById('cli-input');
-    const cliContent = document.getElementById('cli-content');
+    
+// CLI Element IDs    
+const cliContainer = document.getElementById('cli-container');
+const cliPrompt = document.getElementById('cli-prompt');
+const cliInput = document.getElementById('cli-input');
+const cliContent = document.getElementById('cli-content');
+const customCaret = document.createElement('div');
+customCaret.className = 'custom-caret';
 
-// Listener
+// Listeners
 cliInput.addEventListener('keydown', handleInput);
+cliInput.addEventListener('input', updateCaret);
+cliInput.addEventListener('focus', updateCaret);
+window.addEventListener('resize', updateCaret);
 
 cliContent.onclick = function() {
     cliInput.focus();
     console.log("it clicked")
 };
 
+
+
 //**************************//
 //      CLI FUNCTIONS      //
 //************************//
+const initialPosition = cliPrompt.getBoundingClientRect().right + 5;
+cliInput.parentElement.appendChild(customCaret);
+updateCaret();
 
 // Function to handle Enter key press
 function handleInput(event) {
     if (event.key === 'Enter') {
       processCommand(cliInput.value.trim());
       cliInput.value = '';
+      cliInput.setSelectionRange(initialPosition, initialPosition);
+      updateCaret();
     }
   }
+
+function getTextWidth(text) {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = getComputedStyle(cliInput).font;
+    return context.measureText(text).width;
+  }
+
+function updateCaret() {
+    const inputRect = cliInput.getBoundingClientRect();
+    const textBeforeCaret = cliInput.value.substring(0, Math.min(cliInput.selectionStart, 48)); 
+    const textWidth = getTextWidth(textBeforeCaret);
+
+    customCaret.style.left = `${inputRect.left + window.scrollX + textWidth}px`;
+    customCaret.style.top = `${inputRect.top + window.scrollY}px`;
+  }
+
+cliInput.parentElement.appendChild(customCaret);
+updateCaret();
 
 // Function to display new message
 function printOutput(message) {
@@ -114,6 +147,20 @@ start: {
             },
         },
     },
+    battle: (lastword) => {
+        if (!inCombat) {
+
+        switch(lastword) {
+            case "myself":
+            case "me":
+            case "self":
+                startCombat();
+                enemyHealth = 'Your own despair'
+                enemyBaseDamage = 0
+         }
+    }
+        playerHealth = 0
+},
     actions: {
         north: "hallway",
         south: "alleyway",
@@ -566,6 +613,23 @@ function sellItem(item) {
     }
 }
 
+// Function to buy an item
+function buyItem(item) {
+    const itemCost = calculateBuyCost(item);
+
+    if (GP >= itemCost) {
+        // Subtract the item cost from the player's GP
+        GP -= itemCost;
+
+        // Add the item to the inventory
+        inventory[item] = true; // You can set it to true or a specific value based on your needs
+
+        printOutput(`You bought ${item} for ${itemCost} GP.`);
+    } else {
+        printOutput(`You don't have enough GP to buy ${item}.`);
+    }
+}
+
 // Function to adjust the sell price (this goes into sellItem function)
 function calculateSellPrice(item) {
 
@@ -852,6 +916,13 @@ function handleEat(itemToEat) {
     }
 }
 
+function handleGive(objectToGive) {
+    if (currentRoom.objects && currentRoom.objects[objectToGive] && currentRoom.objects[objectToGive].give) {
+        currentRoom.objects[objectToGive].give();
+    } else {
+        printOutput("You have nothing to give/throw or can't give/throw this item");
+    }
+}
 
 // Function to handle the speak action
 function handleSpeak() {
@@ -1082,7 +1153,7 @@ function processCommand(command) {
     const mainCommand = commandArgs[0].toLowerCase();
     const lastWordIndex = commandArgs.length - 1;
     const lastWord = commandArgs[lastWordIndex].toLowerCase();
-    
+
     switch (mainCommand) {
         case 'clear':
             clear();
@@ -1214,12 +1285,7 @@ function processCommand(command) {
         case 'donate':
         case 'provide':
         case 'deliver':
-            const objectToGive = lastWord;
-            if (currentRoom.objects && currentRoom.objects[objectToGive] && currentRoom.objects[objectToGive].give) {
-            currentRoom.objects[objectToGive].give();
-            } else {
-            printOutput("You have nothing to give/throw or can't give/throw this item");
-            }
+            handleGive(lastWord);
             break;
                     
         case 'attack':
@@ -1235,6 +1301,8 @@ function processCommand(command) {
         case 'slap':
         case 'kick':
         case 'punch':
+        case 'suicide':
+        case 'sewerslide':
             handleCombatAction(lastWord);
             break;
 
