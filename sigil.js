@@ -25,7 +25,6 @@ cliContent.onclick = function() {
 };
 
 
-
 //**************************//
 //      CLI FUNCTIONS      //
 //************************//
