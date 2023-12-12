@@ -170,10 +170,11 @@ start: {
     // Alleyway
     alleyway: {
         description: () => { 
-        if (wonOrcCombat || foodGiven) {
+        if (alreadyBeenAlleyway) {
             return "Alleyway: You are in the alley you came from originally which stretches further south. To the north is the cellar."
         } else {
-            return "Alleyway: You are in an alleyway, It appears you're in a large city. The alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar."
+            alreadyBeenAlleyway = true
+            return "Alleyway: You are in an alleyway, It appears you're in a large city. You see countless blocks of foreign architecture, and larger mismatched structures. The city seems to wrap - above you, even. The alley stretches further ahead. South, you see a dark-iron clad figure, slouched and wailing maddeningly. Behind you, north, is the cellar."
         }
     },
         actions: {
@@ -231,6 +232,7 @@ start: {
                     printOutput("<strong>Congratulations! You defeated the half-orc!</strong>");
                     wonOrcCombat = true;
                     displayRoom();
+                    updateGP(2);
                 }
         },
         dialogue: {
@@ -272,13 +274,11 @@ start: {
             if (alreadyBeenMarket) {
                 return "Market Center: You are in a dense, chimeric crowd. A young man clutches his coinpurse. It appears he's been pickpocketed - best not hang around. The market continues to your east and west. A tired ivory structure towers over you to the south."
             } else {
-                return "Market Center: Out of the alley you arrive at the busy street. All manner of creatures walk about. You see countless blocks of foreign architecture, smoke choked alleys, and larger mismatched structures. The city seems to wrap - above you, even."
+                alreadyBeenMarket = true
+                return  "Market Center: The street is lit by the neon glow of jarred will'o'wisps adorned to shoddy stalls and patchworked tents. The market continues to your east and west. A tired ivory structure towers over you to the south."
             }
          },dialogue: {
             default: () => {
-                if (false) { //add logic
-                return null
-            } else
                 showResponses = true
                 return 'You approch a young man. His eyes surveil the crowded streets, he turns to you. <strong>"What do you want? Can\'t you see I\'ve lost everything!"</strong>'
             },
@@ -349,10 +349,16 @@ start: {
       },
 
     
-    // Kitchen
-    kitchen: {
-      description: "Kitchen: You are in a dusty kitchen, full of rotting food. There is a key on the table and a door leading west.",
-      objects: {
+// Kitchen
+kitchen: {
+    description: () => {
+        if (inventory.key) {
+            return "Kitchen: You are in a dusty kitchen, full of rotting food. There is a door leading west.";
+        } else {
+            return "Kitchen: You are in a dusty kitchen, full of rotting food. There is a key on the table and a door leading west.";
+        }
+    },
+    objects: {
         food: {
             description: "Rotten food, who would eat this?",
             take: () => {
@@ -365,12 +371,12 @@ start: {
                 takeItem('key');
             },
         },
-      },
-      actions: {
-        west: "hallway",
-      },
     },
-    
+    actions: {
+        west: "hallway",
+    },
+},
+ 
     
     //Market East
     marketeast: {
@@ -380,6 +386,7 @@ start: {
             } else if (alreadyBeenMarketEast && wonDevilCombat) {
                 return "Market East: You are on the east-side of the night market. Scorch marks are left on the cobblestone where the devil's shop once stood. It seems he left behind a cortex of a Modron in his hurry. You hear a rabbling of aggravated voices to your north. To the south delicious smells grab at your sense"
             } else {
+                alreadyBeenMarketEast = true
                 return 'Market East: You are on the east-side of the night market. These vendor booths appear to unfold and construct themselves out of thin air. A devil running a stand littered with otherwordly materials, beckons you.'
             }
          },
@@ -443,12 +450,11 @@ start: {
             west: "marketcenter",
             north: "northeastalleyway",
         },
-        combatAvailable: true,
     },
 
 
     marketwest: {
-        description: "Market West: Descript Here",
+        description: "Market West: You are on the west-side of the night market. ",
          objects: { 
             axe: {
                 description: "Its an axe.",
@@ -461,7 +467,7 @@ start: {
          dialogue: {
             default: () => { 
                 showResponses = true
-                return '<strong>Buy or sell?</strong>'
+                return '<strong></strong>'
             },
 
             response1: "1. Buy Items",
@@ -469,7 +475,7 @@ start: {
             response3: "3. ",
             response4: "4. ",
             
-            outcome1: () => {return 'I have an axe';},
+            outcome1: () => { return 'I have an axe';},
             outcome2: () => { return '<strong>"You\'ve never seen a Modron? Little, nigh-immortal, mechanical fuckers. Supposed to uphold the principles of law and order. Next you\'re gonna tell me you don\'t have a portal key"</strong> he lets out a hearty laugh, then turns stern <strong>"Or worse you\'re gonna tell you don\'t have any coins"</strong>'},
             outcome3: () => { return '<strong>Do I look like a tout, outsider? There\'s very little gain to be made in guide work. Take your tourism to The Smoldering Corpse bar. There\'s bound to be a tout there."</strong> He extends his arm in the north-ward direction <strong>"Good luck finding one that\'s not a drunkerd or a cutpurse though..."</strong>'},
             outcome4: () => { return "You ignore the devil - better things to do."},
@@ -498,7 +504,7 @@ let triedEating = false;
 let showResponses = false;
 let alreadyBeenMarket = false;
 let alreadyBeenMarketEast = false;
-
+let alreadyBeenAlleyway = false;
 
 // Start room locked door
 rooms.start.actions.south = () => {
@@ -720,25 +726,6 @@ function displayRoom() {
     const roomInfoElement = document.getElementById('room-info');
     roomInfoElement.innerHTML = `<p>${boldText}</p>`;
 
-    // Chapter 1 ending text
-    if (currentRoom === rooms.marketcenter && !alreadyBeenMarket) {
-        alreadyBeenMarket = true
-        setTimeout(() => {
-            printOutput("<strong>...and you are totally lost</strong>");
-            setTimeout(() => {
-                printOutput("<strong>Chapter 1: END</strong>");
-            }, 1000);
-        }, 1000);
-    
-        setTimeout(() => {
-            printOutput("The street is lit by the neon glow of jarred will'o'wisps adorned to shoddy stalls and patchworked tents. The market continues to your east and west. A tired ivory structure towers over you to the south.");
-        }, 3000);
-    }
-
-    if (currentRoom === rooms.marketeast && !alreadyBeenMarketEast) {
-        alreadyBeenMarketEast = true
-    }
-
     printOutput(`${boldText}`);
     printOutput(`${unboldedText}`);
 }
@@ -754,6 +741,12 @@ function displayInventory() {
     } else {
         printOutput("Your inventory is empty.");
     }
+}
+
+function updateGP(amount) {
+    GP += amount;
+    
+    printOutput(`<strong>GP: ${GP}</strong>`)
 }
 
 function displayGP() {
@@ -1181,11 +1174,11 @@ function processCommand(command) {
 
     printOutput(`>${command}`);
     const commandArgs = command.split(' ');
-    // const mainCommand = commandArgs[0].toLowerCase();
     const lastWordIndex = commandArgs.length - 1;
     const lastWord = commandArgs[lastWordIndex].toLowerCase();
-
+    
     for (let i = commandArgs.length - 1; i >=-1; i--) {
+        commandArgs[i] = commandArgs[i].toLowerCase();
 
         switch (commandArgs[i]) {
         case 'clear':
@@ -1446,8 +1439,6 @@ function processCommand(command) {
             i = -1; //break for loop
             break;
 
-        //default:
-         //   printOutput("I don\'t understand that command.");
         }
     }
 }
