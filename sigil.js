@@ -293,7 +293,7 @@ start: {
             response3: "3. Ask him about the market.",
             response4: "4. Ignore him and leave.",
             
-            outcome1: () => { return '<strong>"You can help by tracking down that thief. I saw someone running that way!"</strong> He points over to the west-side of the market' },
+            outcome1: () => { return '<strong>"You can help by tracking down that thief. I saw someone running that way!"</strong> He points over to the east-side of the market' },
             outcome2: () => { 
                 if (GP >= 100) {
                     GP -= 100
@@ -468,9 +468,71 @@ kitchen: {
         },
     },
 
+
+    // South-East Alleyway
+    northeastalleyway: {
+        description: "South-East Alleyway: Description Goes Here",
+         objects: { 
+
+        },
+         dialogue: {
+            default: () => { 
+                showResponses = true
+                return ' '
+            },
+
+            response1: "1. ",
+            response2: '2. ',
+            response3: "3. ",
+            response4: "4. ",
+            
+
+                outcome1: () => { return ' ';},
+                outcome2: () => { return ' ';},
+                outcome3: () => { return ' ';},
+                outcome4: () => { return ' ';},
+                },
+
+        actions: {
+            north: "marketeast"
+            //add south for The Grease Pits
+        },
+    },
+
+    // North-East Alleyway
+    northeastalleyway: {
+        description: "North-East Alleyway: Description Goes Here",
+         objects: { 
+
+        },
+         dialogue: {
+            default: () => { 
+                showResponses = true
+                return ' '
+            },
+
+            response1: "1. ",
+            response2: '2. ',
+            response3: "3. ",
+            response4: "4. ",
+            
+
+                outcome1: () => { return ' ';},
+                outcome2: () => { return ' ';},
+                outcome3: () => { return ' ';},
+                outcome4: () => { return ' ';},
+                },
+
+        actions: {
+            south: "marketeast"
+            //add east for The Smoldering Corpse
+        },
+    },
+
+    
     // Market West
     marketwest: {
-        description: "Market West: You are on the west-side of the night market. Amongst several oddities, you see a kobold shopkeep accompanied by a giant hamster. Numerous armaments are fashioned to it.",
+        description: "Market West: You are on the west-side of the night market. Amongst several oddities, you see a kobold shopkeep accompanied by a giant hamster. Numerous armaments are fashioned to it. A quick blinding light emits from the south!",
          objects: { 
             axe: {
                 description: "A large axe, leathal damage",
@@ -509,6 +571,7 @@ kitchen: {
                   printOutput('-greatsword, <strong>50GP</strong>');
                   printOutput('-a strange glowing purple gemstone. <strong>500GP</strong>');
                   printOutput('-scrap metal, but shiny. <strong>2GP</strong>');
+                  return ' '
                 },
                 outcome2: () => {
                   return '<strong>"Anything you got, really! Bonus for Bogo if it\'s shiny."</strong>';
@@ -523,7 +586,38 @@ kitchen: {
         },
         actions: {
             east: "marketcenter",
-            north: "northeastalleyway",
+            south: "southwestalleyway",
+        },
+    },
+
+    // South-West Alleyway
+    southwestalleyway: {
+        description: "South-West Alleyway: Description Goes Here",
+         objects: { 
+
+        },
+         dialogue: {
+            default: () => { 
+                showResponses = true
+                return ' '
+            },
+
+            response1: "1. ",
+            response2: '2. ',
+            response3: "3. ",
+            response4: "4. ",
+            
+
+                outcome1: () => { return ' ';},
+                outcome2: () => { return ' ';},
+                outcome3: () => { return ' ';},
+                outcome4: () => { return ' ';},
+                },
+
+        actions: {
+            north: "marketwest"
+            //add west for Parakks Pest
+            //add south for Fell Tattoo
         },
     },
 };
