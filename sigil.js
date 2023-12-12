@@ -1163,7 +1163,7 @@ const enemyWoundedMessages = [
     "<strong>A critical blow to your opponent; their defeat is imminent!</strong>"
 ];
 
-
+let validCommandFound = false;
 //**************************//
 //      GAME LOGIC: 4      //
 //      CLI COMMANDS      //
@@ -1176,19 +1176,21 @@ function processCommand(command) {
         printOutput("You are dead. <stong>Game Over.</strong");
         return;
     }
+    
+    validCommandFound = false;
 
     printOutput(`>${command}`);
     const commandArgs = command.split(' ');
     const lastWordIndex = commandArgs.length - 1;
     const lastWord = commandArgs[lastWordIndex].toLowerCase();
     
-    for (let i = commandArgs.length - 1; i >=-1; i--) {
+    for (let i = commandArgs.length - 1; i >=0; i--) {
         commandArgs[i] = commandArgs[i].toLowerCase();
 
         switch (commandArgs[i]) {
         case 'clear':
             clear();
-            i = -1; //break for loop
+            validCommandFound = true;
             break;
 
         case 'go':
@@ -1201,31 +1203,36 @@ function processCommand(command) {
             // CommandArgs[1] here is the direction
             const direction = lastWord ? lastWord.toLowerCase() : '';
             handleMovement(direction);
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
-        case 'north':i = 0; //break for loop
+        case 'north':
         case 'n':
             handleMovement('north');
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         case 'east':
         case 'e':
             handleMovement('east');
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;  
 
         case 'west':
         case 'w':
             handleMovement('west');
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;   
                   
         case 'south':
         case 's':
             handleMovement('south');
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         case 'room':
@@ -1239,7 +1246,8 @@ function processCommand(command) {
         case 'notice':
         case 'view':
             displayRoom();
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         case 'inventory':
@@ -1247,7 +1255,8 @@ function processCommand(command) {
         case 'inv':
         case 'gear':
             displayInventory();
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         case 'gp':
@@ -1258,7 +1267,8 @@ function processCommand(command) {
         case 'money':
         case 'currency':
             displayGP();
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         // Take
@@ -1295,7 +1305,8 @@ function processCommand(command) {
         case 'wreck':
         case 'shatter':
             handleObjectInteraction(commandArgs[i], lastWord);
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         case 'drop':
@@ -1308,7 +1319,8 @@ function processCommand(command) {
         case 'discard':
         case 'leave':
             handleDrop(lastWord);
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         case 'eat':
@@ -1319,7 +1331,8 @@ function processCommand(command) {
         case 'dine':
         case 'chew':
             handleEat(lastWord);
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
             
         case 'give':
@@ -1329,7 +1342,8 @@ function processCommand(command) {
         case 'provide':
         case 'deliver':
             handleGive(lastWord);
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
                     
         case 'attack':
@@ -1348,7 +1362,8 @@ function processCommand(command) {
         case 'suicide':
         case 'sewerslide':
             handleCombatAction(lastWord);
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         case 'sneak':
@@ -1357,7 +1372,8 @@ function processCommand(command) {
         case 'creep':
         case 'evade':
             handleSneak();
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
         
         // To start the dialogue
@@ -1373,7 +1389,8 @@ function processCommand(command) {
         case 'scream':
         case 'yell':
             handleSpeak(commandArgs[i]);
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
         // Player Options
         case '1':
@@ -1381,12 +1398,14 @@ function processCommand(command) {
         case '3':
         case '4':
             outcomeResponse(commandArgs[i]);
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         case 'buy':
             buyItem(lastWord)
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break
         
         case 'wait':
@@ -1396,7 +1415,8 @@ function processCommand(command) {
         case 'watch':
         case 'relax':
             printOutput("Time passes but you are no closer to getting home.")
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         case 'equip':
@@ -1406,7 +1426,8 @@ function processCommand(command) {
         case 'dress':
         case 'adorn':
             printOutput("No need to equip anything you can only fit 5 items in your bag.")
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
             
         case 'health':
@@ -1415,7 +1436,8 @@ function processCommand(command) {
         case 'self':
         case 'person':
             printOutput(`<strong>Player Health: ${playerHealth}</strong>`)
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         case 'help':
@@ -1424,14 +1446,16 @@ function processCommand(command) {
             printOutput('verbs like give, speak, sneak, eat and attack can be useful');
             printOutput('<strong>You can look at your inventory with the "inventory", "bag", "inv" or simpily "i" commands</strong');
             printOutput('You may also want to see "help-combat"')
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
         
         case 'help-combat':
             printOutput('You can <strong>start combat</strong> with vaid targets with the commands like "attack, kill or hit"')
             printOutput('While in combat you <strong>cannot preform movements.</strong> use the "attack" command to roll for damage')
             printOutput('<strong>You can check your health with the "health", "hitpoints" or "hp" commands</strong>')
-            i = -1; //break for loop
+            validCommandFound = true;
+            i = 0
             break;
 
         case 'xyzzy':
@@ -1441,10 +1465,15 @@ function processCommand(command) {
             updateCounters();
             doneSecret = true;
             }
-            i = -1; //break for loop
+            validCommandFound = true;
+            i =   0
             break;
 
         }
+
+    }
+     if (!validCommandFound) {
+        printOutput("I don\'t understand that command");
     }
 }
 
