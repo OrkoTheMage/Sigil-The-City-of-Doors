@@ -83,8 +83,10 @@ function clear() {
             !child.classList.contains('output')) {
             cliContent.removeChild(child);
         }
-        displayRoom();
+ 
     });
+    
+    displayRoom();
   }
 
 
@@ -209,9 +211,12 @@ start: {
         description: () => { 
             if (foodGiven) {
                 return "Alley End: The half-orc, now satisfied with the food you gave him, watches you pass without hostility. To the south, you see a busy thoroughfare.";
+            } else if (wonOrcCombat && inventory.crest) {
+                return "Alley End: The half-orc, now dead, lies lifeless on the ground. You can proceed freely to the south, where you see a busy thoroughfare.";
             } else if (wonOrcCombat) {
                 return "Alley End: The half-orc, now dead, lies lifeless on the ground. Tucked under his garb, a brass crest, draws your attention. You can proceed freely to the south, where you see a busy thoroughfare.";
-            } else {
+            } 
+            else {
                 return "Alley End: Now visible, the figure is a half-orc. He's either unaware or too deranged to notice your presence. Though charging past him might change that. To the south, you see a busy thoroughfare.";
             }
         },
@@ -438,9 +443,12 @@ kitchen: {
         description: () => {
             if (alreadyBeenMarketEast && !wonDevilCombat) {
                 return "Market East: You are on the east-side of the night market. There's a devil running a stand littered with otherwordly materials. You hear a rabbling of aggravated voices to your north. To the south delicious smells grab at your sense"
-            } else if (alreadyBeenMarketEast && wonDevilCombat) {
-                return "Market East: You are on the east-side of the night market. Scorch marks are left on the cobblestone where the devil's shop once stood. It seems he left behind a cortex of a Modron in his hurry. You hear a rabbling of aggravated voices to your north. To the south delicious smells grab at your sense"
-            } else {
+            } else if (alreadyBeenMarketEast && wonDevilCombat && inventory.cortex) {
+                return "Market East: You are on the east-side of the night market. Scorch marks are left on the cobblestone where the devil's shop once stood. You hear a rabbling of aggravated voices to your north. To the south delicious smells grab at your sense"
+            }  else if (alreadyBeenMarketEast && wonDevilCombat) {
+                return "Market East: You are on the east-side of the night market. Scorch marks are left on the cobblestone where the devil's shop once stood. It seems he left behind a cortex of a modron in his hurry. You hear a rabbling of aggravated voices to your north. To the south delicious smells grab at your sense"
+            }
+            else {
                 alreadyBeenMarketEast = true
                 return 'Market East: You are on the east-side of the night market. These vendor booths appear to unfold and construct themselves out of thin air. A devil running a stand littered with otherwordly materials, beckons you.'
             }
@@ -448,8 +456,6 @@ kitchen: {
          objects: {
             "devil": {
                 description: "A red-tinted devil running a stand of various strange items. Though he gives off a strong presence, he doesn't seem like he'd put up a fight.",
-                enemyBaseDamage: 0,
-                enemyHealth: 666,
             },
             cortex: {
                 description: "A modron cortex. Seems valuable",
@@ -504,14 +510,15 @@ kitchen: {
         },
         actions: {
             west: "marketcenter",
-            north: "northeastalleyway",
+            north: "northeastalley",
+            south: "southeastalley"
         },
     },
 
 
-    // South-East Alleyway
-    northeastalleyway: {
-        description: "South-East Alleyway: Description Goes Here",
+    // South-East Alley
+    southeastalley: {
+        description: "South-East Alley: Description Goes Here",
          objects: { 
 
         },
@@ -539,20 +546,27 @@ kitchen: {
         },
     },
 
-    // North-East Alleyway
-    northeastalleyway: {
-        description: "North-East Alleyway: Description Goes Here",
+    // North-East Alley
+    northeastalley: {
+        description: "North-East Alley: You are in a north-east alleyway near the market. This back alley is lined with refuse. A cloaked half-elf nestles themselves in the corner. They appear to be counting coins, shouldered to you. Ahead must be the source of the commotion you heard earlier.",
          objects: { 
+            'half-elf': {
+                description: 'A cloaked half-elf. Could be a dangerous type'
+            },
+
+            refuse: {
+                description: 'Mostly food waste. Nothing of use.'
+            },
 
         },
          dialogue: {
             default: () => { 
                 showResponses = true
-                return ' '
+                return 'You step behind the half-elf<strong> "Gods! I thought you were a Jailer the way you crept up on me"'
             },
 
-            response1: "1. ",
-            response2: '2. ',
+            response1: "1. Accuse them of theft!",
+            response2: '2. Ask them what a "Jailer" is.',
             response3: "3. ",
             response4: "4. ",
             
@@ -564,8 +578,8 @@ kitchen: {
                 },
 
         actions: {
-            south: "marketeast"
-            //add east for The Smoldering Corpse
+            south: "marketeast",
+            east: "thesmolderingcorpse"
         },
     },
 
@@ -899,7 +913,7 @@ function calculateBuyCost(item) {
 //************************//
 
 //Globals for gamestate
-let currentRoom = rooms.start;
+let currentRoom = rooms.northeastalley;
 let moves = 0;
 let playerScore = 0;
 const inventory = {};
