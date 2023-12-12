@@ -119,15 +119,15 @@ start: {
             },
         },
         book: {
-            description: 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take it?',
+            description: 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?',
             break: () => {
-                return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take it?';
+                return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?';
             },
         },
         books: {
-            description: 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take it?',
+            description: 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?',
             break: () => {
-                return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take it?';
+                return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?';
             },
         },
         sword: {
@@ -252,7 +252,7 @@ start: {
             outcome1: () => { 
                 if (inventory.food) {
                     rooms.alleyend.objects.food.give();
-                    return "You offer him some food."
+                    return " "
                 } else 
                     return "You have no food to give"
             },
@@ -340,15 +340,15 @@ start: {
         description: "Store Room: You are in a cellar store room. There are a number of run-down barrels within the room and a door leading east.",
         objects: {
             barrels: {
-                description: "You found a lantern, it's old but it might be useful. Take it?",
+                description: "You found a lantern, it's old but it might be useful. Take lantern?",
                 break: () => {
-                    return "You found a lantern, it's old but it might be useful. Take it?";
+                    return "You found a lantern, it's old but it might be useful. Take lantern?";
                 },       
             },
             barrel: {
-                description: "You found a lantern, it's old but it might be useful. Take it?",
+                description: "You found a lantern, it's old but it might be useful. Take lantern?",
                 break: () => {
-                    return "You found a lantern, it's old but it might be useful. Take it?";
+                    return "You found a lantern, it's old but it might be useful. lantern?";
                 },
             },
             lantern: {
@@ -728,13 +728,11 @@ function takeItem(item) {
                     increaseScore(10);
                     updateCounters();
                 } else if (item === 'lantern') {
-                    printOutput(`You take the lantern and turn it on.`);
+                    printOutput(`You turn it on.`);
                     increaseScore(10);
                     updateCounters();
                 } else if (item === 'crest' && wonOrcCombat) {
-                    printOutput(`You take the ${item}.`);
                 } else if (item === 'cortex' && wonDevilCombat) {
-                    printOutput(`You take the ${item}.`);
                 }
 
                 // Delete the item from the room
