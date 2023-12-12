@@ -134,7 +134,7 @@ start: {
                 }
             },
         },
-        book: {
+        books: {
             description: () => { 
                 if (inventory.sword) {
                     return 'You rummage through the books. Mostly garbage.';
@@ -1045,7 +1045,9 @@ function handleObjectInteraction(action, object) {
             case 'observe':
             case 'study':
             case 'search':
-                printOutput(currentRoom.objects[object].description);
+                const description = currentRoom.objects[object].description;
+                const descriptionText = typeof description === 'function' ? description() : description;
+                printOutput(descriptionText);
                 break;
 
             case 'break':
