@@ -21,7 +21,7 @@ window.addEventListener('resize', updateCaret);
 
 cliContent.onclick = function() {
     cliInput.focus();
-    console.log("it clicked")
+    console.log("dicks")
 };
 
 
@@ -154,11 +154,11 @@ start: {
             case "me":
             case "self":
                 startCombat();
-                enemyHealth = 'Your own despair'
+                enemyHealth = 'Your own despair' //NaN
                 enemyBaseDamage = 0
+                playerHealth = 0
          }
     }
-        playerHealth = 0
 },
     actions: {
         north: "hallway",
@@ -277,25 +277,35 @@ start: {
                 alreadyBeenMarket = true
                 return  "Market Center: The street is lit by the neon glow of jarred will'o'wisps adorned to shoddy stalls and patchworked tents. The market continues to your east and west. A tired ivory structure towers over you to the south."
             }
-         },dialogue: {
+         }, objects: {
+            man: {
+                description: "A clueless human. Well dressed and unfit for this place.",
+            }
+         },
+         dialogue: {
             default: () => {
                 showResponses = true
                 return 'You approch a young man. His eyes surveil the crowded streets, he turns to you. <strong>"What do you want? Can\'t you see I\'ve lost everything!"</strong>'
             },
 
-            response1: "1. Offer him help",
-            response2: '2. Give him gold (100GP)',
-            response3: "3. ",
-            response4: "4. Ignore him and leave",
+            response1: "1. Offer him help.",
+            response2: '2. Give him gold (100GP).',
+            response3: "3. Ask him about the market.",
+            response4: "4. Ignore him and leave.",
             
-            outcome1: () => { return '<strong>You can help by tracking down that thief. I saw someone running west!</strong>' },
+            outcome1: () => { return '<strong>"You can help by tracking down that thief. I saw someone running that way!"</strong> He points over to the west-side of the market' },
             outcome2: () => { 
                 if (GP >= 100) {
-                    GP - 100
-                    return '<strong>I don\'t know how to thank you, stranger. You\'ve done a kind thing.</strong>'
-                } else return 'You don\'t have enough gold.'
+                    GP -= 100
+                    increaseScore(10);
+                    updateCounters();
+                    printOutput("You give the man 100 gold pieces")
+                    printOutput(`<strong>GP:${GP}</strong`)
+                    return '<strong>"I don\'t know how to thank you, stranger. You\'ve done a kind thing."</strong> He seems content but offers nothing else in return.'
+                } else 
+                return 'You don\'t have enough gold.'
             },
-            outcome3: () => { return ' '},
+            outcome3: () => { return '<strong>"It\'s some kind of hock for the city\'s \'less reputable\' wares. That\'s what I\'ve heard from the Takers. I wanted to see for myself. That was before I got robbed blind!</strong>'},
             outcome4: () => { return "You ignore the poor man - better things to do" },
         },
         actions: {
@@ -383,7 +393,7 @@ kitchen: {
 },
  
     
-    //Market East
+    // Market East
     marketeast: {
         description: () => {
             if (alreadyBeenMarketEast && !wonDevilCombat) {
@@ -402,7 +412,7 @@ kitchen: {
                 enemyHealth: 666,
             },
             cortex: {
-                description: "A modron cortex.",
+                description: "A modron cortex. Seems valuable",
                 take: () => {
                     takeItem('cortex');
                 },
@@ -427,6 +437,7 @@ kitchen: {
                         printOutput("<strong>Congratulations! You attacked a planer being with minimal consequences</strong>")
                         wonDevilCombat = true;
                         increaseScore(10);
+                        updateCounters();
                         displayRoom();
                     }
              }
@@ -457,33 +468,58 @@ kitchen: {
         },
     },
 
-
+    // Market West
     marketwest: {
-        description: "Market West: You are on the west-side of the night market. ",
+        description: "Market West: You are on the west-side of the night market. Amongst several oddities, you see a kobold shopkeep accompanied by a giant hamster. Numerous armaments are fashioned to it.",
          objects: { 
             axe: {
-                description: "Its an axe.",
-                buy: () => {
-                    buyItem('axe')
+                description: "A large axe, leathal damage",
             },
-
-         },
+            greatsword: {
+                description: "A quality greatsword",
+            },
+            gemstone: {
+                description: 'A strange glowing, purple, gemstone.',
+            },
+            metal: {
+                description: 'Scrap metal. It\'s junk but at least it\'s shiny',
+            },
+            kobold : {
+                description: 'A small reptillian creature. Likes shiny things, apparently, sharp things too - and hamsters.'
+            },
+            hamster : {
+                description: 'An incredibly large hamster. Seems very cute, if not potentially dangerous.'
+            },
         },
          dialogue: {
             default: () => { 
                 showResponses = true
-                return '<strong></strong>'
+                return 'The small reptillian calls you over. <strong>"I have good things! Come, come look at the good things Bogo has! I buy too, yes, yes. You have sharps or shinies for Bogo?"</strong> '
             },
 
-            response1: "1. Buy Items",
-            response2: '2. Sell Items',
-            response3: "3. ",
-            response4: "4. ",
+            response1: "1. Ask what he has for sale.",
+            response2: '2. Ask what he would be intrested in buying.',
+            response3: "3. Ask about the hamster",
+            response4: "4. Ignore him and leave",
             
-            outcome1: () => { return 'I have an axe';},
-            outcome2: () => { return ' '},
-            outcome3: () => { return ' '},
-            outcome4: () => { return " "},
+
+                outcome1: () => {
+                  printOutput("<strong>All kinds of sharps and shinies. You look tough, buy something sharp. If you got the coin, buy a shiny!</strong>");
+                  printOutput('-axe, <strong>10GP</strong>');
+                  printOutput('-greatsword, <strong>50GP</strong>');
+                  printOutput('-a strange glowing purple gemstone. <strong>500GP</strong>');
+                  printOutput('-scrap metal, but shiny. <strong>2GP</strong>');
+                },
+                outcome2: () => {
+                  return '<strong>"Anything you got, really! Bonus for Bogo if it\'s shiny."</strong>';
+                },
+                outcome3: () => {
+                  return '<strong>Oh! This is Pogo.</strong> The kobold pats the large beast on it\'s side. <strong>Pogo, meet stranger - stranger, meet Pogo.</strong> The hamster adjusts it\'s position, acknowledging  your presence. <strong>She\'s from space. Bogo not a big fan of space, but Bogo like hamsters.</strong>';
+                },
+                outcome4: () => {
+                  return 'You ignore the shopkeep - better things to do.';
+                },
+
         },
         actions: {
             east: "marketcenter",
@@ -503,9 +539,6 @@ let sneakSuccessful = false;
 let foodGiven = false;
 let attemptedSouth = false;
 let doorBroken = false;
-let doneSecret = false;
-let dropConfirmation = false;
-let triedEating = false;
 let showResponses = false;
 let alreadyBeenMarket = false;
 let alreadyBeenMarketEast = false;
@@ -550,6 +583,32 @@ rooms.alleyend.actions.south = () => {
 //     OBJECT FUNCTIONS    //
 //************************//
 
+// Define items with their properties
+const items = {
+    sword: {
+        description: "A quality sword.",
+        damage: 10
+    },
+    lantern: {
+        description: "An old lantern. Still has some fuel left in it."
+    },
+    food: {
+        description: "Rotten food. Who would eat this?"
+    },
+    key: {
+        description: "A small brass key."
+    },
+    note: {
+        description: '<strong>A note signed "Factotum Torkka": "Welcome to Sigil! It seems you found a portal here, through the machinations of The Lady of Pain, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can."</strong>'
+    },
+    crest: {
+        description: "A strange crest bearing the markings of a cowl or helmet of some-kind."
+    },
+    cortex: {
+        description: "A modron cortex. Seems valuable"
+    },
+};
+
 // Function to add item to inventory
 function takeItem(item) {
     const inventorySize = Object.keys(inventory).length;
@@ -560,50 +619,35 @@ function takeItem(item) {
         
         // The following only happens if item is not in inventory
         // Descriptions are used later for an "if" in the object handler
+        // Properties like 'damage' are used by the combat handler
+        // Combat needs to be won for 'loot' items
         if (!inventory[item]) {
-            if (item === 'sword') {
-                inventory[item] = {
-                    description: "A quality sword.",
-                    damage: 10
-                };
-                printOutput(`Under some books you find a sword. Truly mightier.`);
-                increaseScore(10);
-                updateCounters();
-            } else if (item === 'lantern') {
-                inventory[item] = {
-                    description: "An old lantern. Still has some fuel left in it.",
-                };
-                printOutput(`You take the lantern and turn it on.`);
-                increaseScore(10);
-                updateCounters();
-            } else if (item === 'food') {
-                inventory[item] = {
-                    description: "Rotten food. Who would eat this?",
-                };
+            const itemProperties = items[item];
+
+            if (itemProperties) {
+                inventory[item] = itemProperties;
                 printOutput(`You take the ${item}.`);
-            } else if (item === 'key') {
-                inventory[item] = {
-                    description: "A small brass key.",
-                };
-                printOutput(`You take the ${item}.`);
-            } else if (item === 'note') {
-                inventory[item] = {
-                    description: '<strong>A note signed "Factotum Torkka": "Welcome to Sigil! It seems you found a portal here, through the machinations of The Lady of Pain, don\'t panic. There\'s plenty of food and supplies available. Come find me when you can."</strong>',
-                };
-                printOutput(`You take the ${item}.`);
-            } else if (wonOrcCombat && item === 'crest') {
-                inventory[item] = {
-                    description: "A strange crest bearing the markings of a cowl or helmet of some-kind.",
-                };
-                printOutput(`You take the ${item}.`);
-            } else if (wonDevilCombat && item === 'cortex') {
-                inventory[item] = {
-                    description: "A Modron cortex.",
-                };
-                printOutput(`You take the ${item}.`);
-            }
-            else {
+
+                // Additional actions based on item
+                if (item === 'sword') {
+                    printOutput(`Under some books you find a sword. Truly mightier.`);
+                    increaseScore(10);
+                    updateCounters();
+                } else if (item === 'lantern') {
+                    printOutput(`You take the lantern and turn it on.`);
+                    increaseScore(10);
+                    updateCounters();
+                } else if (item === 'crest' && wonOrcCombat) {
+                    printOutput(`You take the ${item}.`);
+                } else if (item === 'cortex' && wonDevilCombat) {
+                    printOutput(`You take the ${item}.`);
+                }
+
+                // Delete the item from the room
+                delete currentRoom.objects[item];
+            } else {
                 printOutput(`Cannot take the ${item}.`);
+                return; // Exit the function if the item cannot be taken
             }
         } 
     } else {
@@ -620,6 +664,7 @@ function giveFood() {
         delete inventory.food;
         foodGiven = true;
         increaseScore(10);
+        updateCounters();
 
     } else if (foodGiven) {
         printOutput("You already gave him food. The half-orc seems content.");
@@ -655,8 +700,28 @@ function buyItem(item) {
         // Subtract the item cost from the player's GP
         GP -= itemCost;
 
-        // Add the item to the inventory
-        inventory[item] = true; // You can set it to true or a specific value based on your needs
+        // Define properties based on the item type
+        let properties = {};
+        switch (item) {
+            case 'axe':
+                properties = { name: item, description: 'A large axe, lethal damage', damage: 15 };
+                break;
+            case 'greatsword':
+                properties = { name: item, description: 'A quality greatsword. You\'re definitely not compensating for anything.', damage: 20 };
+                break;
+            case 'gemstone':
+                properties = { name: item, description: 'A strange glowing, purple, gemstone.' };
+                break;
+            case 'metal':
+                properties = { name: item, description: 'Scrap metal. It\'s junk but at least it\'s shiny' };
+                break;
+            default:
+                printOutput(`Unknown item type: ${item}`);
+                return;
+        }
+
+        // Add the item to the inventory using the dynamic item parameter
+        inventory[item] = properties;
 
         printOutput(`You bought ${item} for ${itemCost} GP.`);
     } else {
@@ -668,13 +733,17 @@ function buyItem(item) {
 function calculateSellPrice(item) {
 
     const sellPrices = {
-        sword: 15,
-        lantern: 10,
+        sword: 5,
+        lantern: 2,
         food: 1,
         key: 2,
         note: 1,
-        crest: 10,
+        crest: 2,
         cortex: 500,
+        gemstone: 250,
+        axe: 5,
+        greatsword: 25,
+
     };
 
     return sellPrices[item] || 0;
@@ -682,7 +751,10 @@ function calculateSellPrice(item) {
 
 function calculateBuyCost(item) {
     const buyPrices = {
-        axe: 100,
+        axe: 10,
+        greatsword: 50,
+        gemstone: 500,
+        metal: 2,
     };
 
     return buyPrices[item] || 0;
@@ -699,7 +771,10 @@ let currentRoom = rooms.start;
 let moves = 0;
 let playerScore = 0;
 const inventory = {};
-let GP = 100
+let GP = 0
+let doneSecret = false;
+let dropConfirmation = false;
+let triedEating = false;
 
 
 // Functions for the move and score counters
@@ -712,6 +787,12 @@ function updateCounters() {
 }
 function increaseScore(points) {
     playerScore += points;
+}
+
+function updateGP(amount) {
+    GP += amount;
+    printOutput(`You've found coins!`)
+    printOutput(`<strong>GP: ${GP}</strong>`)
 }
 
 // Function to display current room description
@@ -746,12 +827,6 @@ function displayInventory() {
     } else {
         printOutput("Your inventory is empty.");
     }
-}
-
-function updateGP(amount) {
-    GP += amount;
-    printOutput(`You've found coins!`)
-    printOutput(`<strong>GP: ${GP}</strong>`)
 }
 
 function displayGP() {
@@ -805,8 +880,7 @@ function handleObjectInteraction(action, object) {
         return;
     }
     if (currentRoom.objects && currentRoom.objects[object]) {
-        moves++;
-        updateCounters();
+
 
         switch (action) {
             case 'take':
@@ -854,6 +928,7 @@ function handleObjectInteraction(action, object) {
                         printOutput(currentRoom.objects[object].breakWithSword());
                         doorBroken = true;
                         increaseScore(10);
+                        updateCounters();
                             } else {
                                 printOutput(currentRoom.objects[object].break());
                             }
@@ -1124,8 +1199,8 @@ function handleCombatAction(lastword) {
         } else if (enemyHealth <=0) {
             currentRoom.battle(lastword)
         }
-
     }
+    else printOutput("You are not in combat. Attack a target.")
 }
 
 function getRandomString(strings) {
@@ -1361,6 +1436,7 @@ function processCommand(command) {
         case 'punch':
         case 'suicide':
         case 'sewerslide':
+        case 'fight':
             handleCombatAction(lastWord);
             validCommandFound = true;
             i = 0
@@ -1403,7 +1479,23 @@ function processCommand(command) {
             break;
 
         case 'buy':
-            buyItem(lastWord)
+        case 'purchase':
+        case 'shop':
+        case 'cop':
+        case 'procure':
+            buyItem(lastWord);
+            validCommandFound = true;
+            i = 0
+            break
+        
+        case 'sell':
+        case 'trade':
+        case 'peddle':
+        case 'handle':
+        case 'exchange':
+            if (currentRoom === rooms.marketwest) {
+            sellItem(lastWord);
+            }
             validCommandFound = true;
             i = 0
             break
