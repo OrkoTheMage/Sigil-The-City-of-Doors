@@ -284,14 +284,19 @@ start: {
             },
 
             response1: "1. Offer him help",
-            response2: '2. ',
+            response2: '2. Give him gold (100GP)',
             response3: "3. ",
             response4: "4. Ignore him and leave",
             
-            outcome1: () => { return ' ' },
-            outcome2: () => { return ' '},
+            outcome1: () => { return '<strong>You can help by tracking down that thief. I saw someone running west!</strong>' },
+            outcome2: () => { 
+                if (GP >= 100) {
+                    GP - 100
+                    return '<strong>I don\'t know how to thank you, stranger. You\'ve done a kind thing.</strong>'
+                } else return 'You don\'t have enough gold.'
+            },
             outcome3: () => { return ' '},
-            outcome4: () => { return " " },
+            outcome4: () => { return "You ignore the poor man - better things to do" },
         },
         actions: {
             east: "marketeast",
@@ -476,9 +481,9 @@ kitchen: {
             response4: "4. ",
             
             outcome1: () => { return 'I have an axe';},
-            outcome2: () => { return '<strong>"You\'ve never seen a Modron? Little, nigh-immortal, mechanical fuckers. Supposed to uphold the principles of law and order. Next you\'re gonna tell me you don\'t have a portal key"</strong> he lets out a hearty laugh, then turns stern <strong>"Or worse you\'re gonna tell you don\'t have any coins"</strong>'},
-            outcome3: () => { return '<strong>Do I look like a tout, outsider? There\'s very little gain to be made in guide work. Take your tourism to The Smoldering Corpse bar. There\'s bound to be a tout there."</strong> He extends his arm in the north-ward direction <strong>"Good luck finding one that\'s not a drunkerd or a cutpurse though..."</strong>'},
-            outcome4: () => { return "You ignore the devil - better things to do."},
+            outcome2: () => { return ' '},
+            outcome3: () => { return ' '},
+            outcome4: () => { return " "},
         },
         actions: {
             east: "marketcenter",
@@ -745,7 +750,7 @@ function displayInventory() {
 
 function updateGP(amount) {
     GP += amount;
-    
+    printOutput(`You've found coins!`)
     printOutput(`<strong>GP: ${GP}</strong>`)
 }
 
