@@ -119,15 +119,35 @@ start: {
             },
         },
         book: {
-            description: 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?',
+            description: () => { 
+                if (inventory.sword) {
+                    return 'You rummage through the books. Mostly garbage.';
+                } else {
+                    return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?';
+                }
+            },
             break: () => {
-                return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?';
+                if (inventory.sword) {
+                    return 'You rummage through the books. Mostly garbage.';
+                } else {
+                    return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?';
+                }
             },
         },
-        books: {
-            description: 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?',
+        book: {
+            description: () => { 
+                if (inventory.sword) {
+                    return 'You rummage through the books. Mostly garbage.';
+                } else {
+                    return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?';
+                }
+            },
             break: () => {
-                return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?';
+                if (inventory.sword) {
+                    return 'You rummage through the books. Mostly garbage.';
+                } else {
+                    return 'You rummage through the books. Mostly garbage but your lantern light catches a glint of something metallic, a sword. Take sword?';
+                }
             },
         },
         sword: {
@@ -186,7 +206,7 @@ start: {
 
     // Alley End
     alleyend: {
-        description: () => {
+        description: () => { 
             if (foodGiven) {
                 return "Alley End: The half-orc, now satisfied with the food you gave him, watches you pass without hostility. To the south, you see a busy thoroughfare.";
             } else if (wonOrcCombat) {
@@ -340,15 +360,35 @@ start: {
         description: "Store Room: You are in a cellar store room. There are a number of run-down barrels within the room and a door leading east.",
         objects: {
             barrels: {
-                description: "You found a lantern, it's old but it might be useful. Take lantern?",
+                description: () => { 
+                    if (inventory.lantern) {
+                        return "Nothing of use left.";
+                    } else {
+                        return "You found a lantern, it's old but it might be useful. Take lantern?";
+                    }
+                },
                 break: () => {
-                    return "You found a lantern, it's old but it might be useful. Take lantern?";
+                    if (inventory.lantern) {
+                        return "Nothing of use left.";
+                    } else {
+                        return "You found a lantern, it's old but it might be useful. Take lantern?";
+                    }
                 },       
             },
             barrel: {
-                description: "You found a lantern, it's old but it might be useful. Take lantern?",
+                description: () => { 
+                    if (inventory.lantern) {
+                        return "Nothing of use left.";
+                    } else {
+                        return "You found a lantern, it's old but it might be useful. Take lantern?";
+                    }
+                },
                 break: () => {
-                    return "You found a lantern, it's old but it might be useful. lantern?";
+                    if (inventory.lantern) {
+                        return "Nothing of use left.";
+                    } else {
+                        return "You found a lantern, it's old but it might be useful. Take lantern?";
+                    }
                 },
             },
             lantern: {
