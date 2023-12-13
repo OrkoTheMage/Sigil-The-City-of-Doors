@@ -19,6 +19,7 @@ cliInput.addEventListener('input', updateCaret);
 cliInput.addEventListener('focus', updateCaret);
 window.addEventListener('resize', updateCaret);
 
+// Heh
 cliContent.onclick = function() {
     cliInput.focus();
     console.log("dicks")
@@ -28,19 +29,10 @@ cliContent.onclick = function() {
 //**************************//
 //      CLI FUNCTIONS      //
 //************************//
+
+// Caret stuff
 const initialPosition = cliPrompt.getBoundingClientRect().right + 5;
 cliInput.parentElement.appendChild(customCaret);
-updateCaret();
-
-// Function to handle Enter key press
-function handleInput(event) {
-    if (event.key === 'Enter') {
-      processCommand(cliInput.value.trim());
-      cliInput.value = '';
-      cliInput.setSelectionRange(initialPosition, initialPosition);
-      updateCaret();
-    }
-  }
 
 function getTextWidth(text) {
     const canvas = document.createElement('canvas');
@@ -60,6 +52,16 @@ function updateCaret() {
 
 cliInput.parentElement.appendChild(customCaret);
 updateCaret();
+
+// Function to handle Enter key press
+function handleInput(event) {
+    if (event.key === 'Enter') {
+      processCommand(cliInput.value.trim());
+      cliInput.value = '';
+      cliInput.setSelectionRange(initialPosition, initialPosition);
+      updateCaret();
+    }
+  }
 
 // Function to display new message
 function printOutput(message) {
@@ -562,7 +564,7 @@ kitchen: {
          dialogue: {
             default: () => { 
                 showResponses = true
-                return 'You step behind the half-elf<strong> "Gods! I thought you were a Jailer the way you crept up on me"'
+                return 'You step behind the half-elf <strong>"Gods! I thought you were a Jailer the way you crept up on me"'
             },
 
             response1: "1. Accuse them of theft!",
@@ -732,6 +734,8 @@ rooms.alleyend.actions.south = () => {
 //************************//
 
 // Define items with their properties
+// Descriptions are used later for an "if" in the object handler
+// Properties like 'damage' are used by the combat handler
 const items = {
     sword: {
         description: "A quality sword.",
@@ -766,8 +770,6 @@ function takeItem(item) {
     if (inventorySize < maxInventorySize) {
         
         // The following only happens if item is not in inventory
-        // Descriptions are used later for an "if" in the object handler
-        // Properties like 'damage' are used by the combat handler
         // Combat needs to be won for 'loot' items
         if (!inventory[item]) {
             const itemProperties = items[item];
@@ -847,6 +849,7 @@ function buyItem(item) {
         GP -= itemCost;
 
         // Define properties based on the item type
+        // Just like with takeItem, they need them
         let properties = {};
         switch (item) {
             case 'axe':
@@ -895,6 +898,7 @@ function calculateSellPrice(item) {
     return sellPrices[item] || 0;
 }
 
+// Function to adjust the buy price (this goes into buyItems function)
 function calculateBuyCost(item) {
     const buyPrices = {
         axe: 10,
@@ -913,7 +917,7 @@ function calculateBuyCost(item) {
 //************************//
 
 //Globals for gamestate
-let currentRoom = rooms.northeastalley;
+let currentRoom = rooms.start;
 let moves = 0;
 let playerScore = 0;
 const inventory = {};
@@ -975,6 +979,7 @@ function displayInventory() {
     }
 }
 
+// Function for the "GP" player action
 function displayGP() {
     if (GP <= 0) {
         printOutput("Your coinpurse is empty")
@@ -1019,6 +1024,7 @@ function handleMovement(action) {
     }
 }
 
+// Function to handle 'take, inspect, break' player actions
 function handleObjectInteraction(action, object) {
     if (inventory[object]) {
         const itemDescription = inventory[object].description;
@@ -1095,6 +1101,7 @@ function handleObjectInteraction(action, object) {
     }
 }
 
+// Function to handle drop action
 function handleDrop(itemToDrop) {
     if (dropConfirmation) {
         // Confirmation is already requested, drop the item
@@ -1139,6 +1146,7 @@ function handleSneak() {
     }
 }
 
+// Function to handle eat action
 function handleEat(itemToEat) {
     if (inventory[itemToEat]) {
         if (itemToEat === 'food' && !triedEating) {
@@ -1168,6 +1176,7 @@ function handleEat(itemToEat) {
     }
 }
 
+// Function to handle give action
 function handleGive(objectToGive) {
     if (currentRoom.objects && currentRoom.objects[objectToGive] && currentRoom.objects[objectToGive].give) {
         currentRoom.objects[objectToGive].give();
@@ -1236,18 +1245,17 @@ let combatLocked = false;
 let playerOutcome;
 let enemyOutcome;
 
-// Function to start combat
+// Function to start combat (2 flags raised)
 function startCombat() {
     printOutput("You are now in combat!");
     inCombat = true;
     combatLocked = true;
 }
 
-// Function to end combat
+// Function to end combat (2 flags lowered)
 function endCombat() {
     inCombat = false;
     combatLocked = false;
-    currentRoom.combatAvailable = false
 }
 
 // Function needed for the dice roll
@@ -1351,12 +1359,13 @@ function handleCombatAction(lastword) {
     else printOutput("You are not in combat. Attack a target.")
 }
 
+// Function for random index for combat msgs
 function getRandomString(strings) {
     const randomIndex = Math.floor(Math.random() * strings.length);
     return strings[randomIndex];
 }
 
-
+// Player combat msgs
 const playerWoundedMessages = [
     "<strong>You've sustained an injury!</strong>",
     "<strong>You've got a flesh wound</strong>",
@@ -1372,6 +1381,7 @@ const playerWoundedMessages = [
     "<strong>Even wounded, you fight on with unwavering resolve!</strong>"
 ];
 
+// Enemy combat msgs
 const enemyWoundedMessages = [
     "<strong>Your enemy is severely wounded, but they fight on!</strong>",
     "<strong>Your enemy has a flesh wound</strong>",
@@ -1386,27 +1396,28 @@ const enemyWoundedMessages = [
     "<strong>A critical blow to your opponent; their defeat is imminent!</strong>"
 ];
 
-let validCommandFound = false;
+
 //**************************//
 //      GAME LOGIC: 4      //
 //      CLI COMMANDS      //
 //************************//
 
+let validCommandFound = false;
 // Function to process user inputs 
-// (often mainCommand is the players action and commandArgs[1] is the object)
+// (often mainCommand is commandArgs[i] the players action and lastWord is the object)
 function processCommand(command) {
     if (playerHealth <= 0) {
         printOutput("You are dead. <stong>Game Over.</strong");
         return;
     }
     
-    validCommandFound = false;
-
     printOutput(`>${command}`);
     const commandArgs = command.split(' ');
     const lastWordIndex = commandArgs.length - 1;
     const lastWord = commandArgs[lastWordIndex].toLowerCase();
     
+    // For loop to index words and find valid commands
+    // i = 0 breaks the loop
     for (let i = commandArgs.length - 1; i >=0; i--) {
         commandArgs[i] = commandArgs[i].toLowerCase();
 
@@ -1423,7 +1434,7 @@ function processCommand(command) {
         case 'jog':
         case 'stroll':
         case 'skip':
-            // CommandArgs[1] here is the direction
+            // lastWord here is the direction
             const direction = lastWord ? lastWord.toLowerCase() : '';
             handleMovement(direction);
             validCommandFound = true;
